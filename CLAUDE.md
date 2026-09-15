@@ -71,4 +71,25 @@ SupabaseのRow Level Securityで実装する：
 ## 進め方の希望
 - 開発者は初心者寄り。Supabaseの設定など自分で行う作業は、手順を1つずつ具体的に示すこと
 - 一気に全部作らず、段階ごとに動作確認しながら進める
-- 最初のタスク：ステップ1（雛形・Supabase接続・ログイン）から始める。まずSupabaseで何を設定すればよいか教えてほしい
+
+## 進捗（2026-09-16 時点）
+- 済：ステップ1（雛形・Supabase接続・ログイン）
+- 済：ステップ2（食事ログ）＋ PWA化 ＋ GitHub Pages公開
+- 次：ステップ3（食材リスト）
+
+### 環境
+- 公開URL：https://test887655.github.io/gohan-log/
+- リポジトリ：test887655/gohan-log（公開。無料プランではPages利用に公開が必須のため）
+- Supabaseプロジェクト：atvrunfaltnkbwhtpoue
+- アカウント：eri / hana の2名。新規登録・メール確認は無効化済み
+- ローカル確認：`python -m http.server 5173`（Node.jsは未インストール）
+
+### 決まったこと・注意点
+- SupabaseのSQLはブラウザ操作で実行できる（EdgeでSupabaseにログイン済み）。
+  publishable キーではDDLを実行できないため、テーブル追加時はこの方法を使う
+- RLSは編集・削除の失敗時にエラーではなく「0件」を返す。
+  update / delete には必ず `.select()` を付け、0件を失敗として扱うこと
+- Service Workerの fetch には `cache: 'reload'` が必須。
+  ないとGitHub Pagesのキャッシュ指示で更新が最大10分届かない
+- 写真は非公開バケット。表示は1時間の署名URLで行い、
+  タブ復帰時（visibilitychange）にセッションごと作り直す
