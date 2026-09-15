@@ -82,6 +82,18 @@ supabase.auth.onAuthStateChange((_event, session) => {
   setTimeout(() => handleSession(session), 0);
 });
 
+// 画面に戻ってきたら、切れかけのログインと期限つき写真URLを作り直す。
+// これがないと、開きっぱなしのまま1時間経ったときに
+// 「写真が出ない」「削除や編集が黙って失敗する」が起きる。
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && currentUser) refreshSession();
+});
+
+async function refreshSession() {
+  const { data } = await supabase.auth.getSession();
+  await handleSession(data.session);
+}
+
 async function handleSession(session) {
   if (!session) {
     currentUser = null;
@@ -183,8 +195,12 @@ mealForm.addEventListener('submit', async (event) => {
 
     if (editingMeal) {
       const oldPath = editingMeal.photo_path;
-      const { error } = await supabase.from('meals').update(values).eq('id', editingMeal.id);
+      // .select() を付けて、実際に何件更新されたかを確認する。
+      // RLSは権限がない場合もログインが切れている場合もエラーを返さず0件を返すため、
+      // これがないと失敗に気づけない。
+      const { data, error } = await supabase.from('meals').update(values).eq('id', editingMeal.id).select();
       if (error) throw error;
+      if (data.length === 0) throw new Error('ログインの有効期限が切れている可能性があります。ログインし直してください。');
       // 写真を差し替えたときは、古い写真を消して容量を節約する
       if (file && oldPath !== photoPath) {
         await supabase.storage.from(BUCKET).remove([oldPath]);
@@ -210,6 +226,9 @@ mealForm.addEventListener('submit', async (event) => {
 async function loadTimeline() {
   timelineStatus.textContent = '読み込み中…';
   timelineStatus.hidden = false;
+
+  // 期限が切れていればここでトークンが更新される
+  await supabase.auth.getSession();
 
   const { data: meals, error } = await supabase
     .from('meals')
@@ -287,12 +306,21 @@ function renderMeal(meal, photoUrl) {
 async function deleteMeal(meal) {
   if (!confirm('この記録を削除しますか？')) return;
 
-  const { error } = await supabase.from('meals').delete().eq('id', meal.id);
+  // 更新と同じ理由で .select() を付け、0件だったら失敗として扱う
+  const { data, error } = await supabase.from('meals').delete().eq('id', meal.id).select();
+
   if (error) {
     console.error(error);
-    alert('削除できませんでした。');
+    alert(`削除できませんでした：${error.message}`);
     return;
   }
+
+  if (data.length === 0) {
+    alert('削除できませんでした。ログインの有効期限が切れている可能性があります。もう一度お試しください。');
+    await refreshSession();
+    return;
+  }
+
   await supabase.storage.from(BUCKET).remove([meal.photo_path]);
   await loadTimeline();
 }
