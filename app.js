@@ -132,15 +132,17 @@ function openForm(meal) {
 
   if (meal) {
     mealFormTitle.textContent = '記録を編集';
-    photoInput.required = false;
-    photoHint.textContent = '写真を選ばなければ、今の写真のままになります。';
+    photoHint.textContent = meal.photo_path
+      ? '写真を選ばなければ、今の写真のままになります。'
+      : '写真なしの記録です。ここで追加できます。';
     photoHint.hidden = false;
     mealForm.querySelector('input[value="' + meal.meal_type + '"]').checked = true;
     eatenAtInput.value = toInputValue(new Date(meal.eaten_at));
     noteInput.value = meal.note ?? '';
   } else {
     mealFormTitle.textContent = '食事を記録';
-    photoInput.required = true;
+    photoHint.textContent = '写真なしでも記録できます。';
+    photoHint.hidden = false;
     eatenAtInput.value = toInputValue(new Date());
   }
 
@@ -202,7 +204,7 @@ mealForm.addEventListener('submit', async (event) => {
       if (error) throw error;
       if (data.length === 0) throw new Error('ログインの有効期限が切れている可能性があります。ログインし直してください。');
       // 写真を差し替えたときは、古い写真を消して容量を節約する
-      if (file && oldPath !== photoPath) {
+      if (file && oldPath && oldPath !== photoPath) {
         await supabase.storage.from(BUCKET).remove([oldPath]);
       }
     } else {
@@ -248,11 +250,15 @@ async function loadTimeline() {
     return;
   }
 
-  // 非公開バケットなので、表示には期限つきのURLを発行する
-  const { data: signed } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrls(meals.map((meal) => meal.photo_path), SIGNED_URL_SECONDS);
-  const urls = new Map((signed ?? []).map((item) => [item.path, item.signedUrl]));
+  // 非公開バケットなので、表示には期限つきのURLを発行する。写真なしの記録は対象外。
+  const paths = meals.map((meal) => meal.photo_path).filter(Boolean);
+  let urls = new Map();
+  if (paths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrls(paths, SIGNED_URL_SECONDS);
+    urls = new Map((signed ?? []).map((item) => [item.path, item.signedUrl]));
+  }
 
   timelineStatus.hidden = true;
   timeline.replaceChildren(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
@@ -262,12 +268,16 @@ function renderMeal(meal, photoUrl) {
   const card = document.createElement('article');
   card.className = 'card';
 
-  const image = document.createElement('img');
-  image.className = 'photo';
-  image.loading = 'lazy';
-  image.alt = meal.note || '食事の写真';
-  if (photoUrl) image.src = photoUrl;
-  card.append(image);
+  if (meal.photo_path) {
+    const image = document.createElement('img');
+    image.className = 'photo';
+    image.loading = 'lazy';
+    image.alt = meal.note || '食事の写真';
+    if (photoUrl) image.src = photoUrl;
+    card.append(image);
+  } else {
+    card.classList.add('no-photo');
+  }
 
   const meta = document.createElement('p');
   meta.className = 'meta';
@@ -321,6 +331,8 @@ async function deleteMeal(meal) {
     return;
   }
 
-  await supabase.storage.from(BUCKET).remove([meal.photo_path]);
+  if (meal.photo_path) {
+    await supabase.storage.from(BUCKET).remove([meal.photo_path]);
+  }
   await loadTimeline();
 }

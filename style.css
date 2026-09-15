@@ -216,6 +216,14 @@ legend {
   color: var(--muted);
 }
 
+/* 写真なしの記録。写真つきカードと区別がつくよう、左に印を付ける */
+.card.no-photo {
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+}
+
+.card.no-photo .meta { margin-top: 0; }
+
 .note-text {
   margin: 4px 0 0;
 }
