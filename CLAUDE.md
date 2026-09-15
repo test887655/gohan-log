@@ -30,7 +30,9 @@ SupabaseのRow Level Securityで実装する：
 
 ## 機能
 ### 1. 食事ログ（最優先）
-- 写真（必須）＋一言メモ＋日時＋朝/昼/夜/間食の区分
+- 写真（任意）＋一言メモ＋日時＋朝/昼/夜/間食の区分
+  - 撮り忘れた食事も残せるよう、写真なしでも投稿できる。写真なしの記録は
+    テキストだけのカードとして表示し、あとから編集で写真を追加できる
 - 2人分が時系列で並ぶタイムライン。誰の投稿かわかる表示
 - 自分の投稿は編集・削除可
 
@@ -59,6 +61,7 @@ SupabaseのRow Level Securityで実装する：
 ## データモデル案
 - profiles (id, display_name)
 - meals (id, user_id, photo_path, note, eaten_at, meal_type, created_at)
+  - photo_path は NULL 可（写真なしの記録）
 - ingredients (id, user_id, name, quantity, unit, expires_on, storage, created_at)
 - recipes (id, user_id, title, steps, note, created_at)
 - recipe_ingredients (id, recipe_id, name, quantity, unit)
