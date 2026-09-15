@@ -1,0 +1,239 @@
+:root {
+  --bg: #fdfbf7;
+  --card: #ffffff;
+  --fg: #2e2a25;
+  --muted: #8a8279;
+  --accent: #e07a3f;
+  --border: #e4ddd2;
+  --error: #c0392b;
+}
+
+* { box-sizing: border-box; }
+
+/* display を指定した要素でも hidden 属性が効くようにする */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+.screen {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 24px;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+header h1 { margin-bottom: 16px; }
+
+/* ---------- フォーム ---------- */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#meal-form {
+  margin-bottom: 32px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="datetime-local"] {
+  font-size: 16px; /* iOSで自動ズームさせないため16px以上 */
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--fg);
+  font-family: inherit;
+}
+
+input[type="file"] {
+  font-size: 0.85rem;
+  color: var(--fg);
+}
+
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+legend {
+  padding: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip {
+  flex: 1;
+  align-items: center;
+  padding: 10px 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--fg);
+  font-size: 0.95rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chip:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.preview {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* ---------- ボタン ---------- */
+
+.primary {
+  font-size: 1rem;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.block {
+  display: block;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-family: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link.danger { color: var(--error); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.row .primary { flex: 1; }
+
+/* ---------- タイムライン ---------- */
+
+#timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--border);
+}
+
+.meta {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.note-text {
+  margin: 4px 0 0;
+}
+
+.card .row { margin-top: 10px; }
+
+/* ---------- その他 ---------- */
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.error {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fdecea;
+  color: var(--error);
+  font-size: 0.85rem;
+}
