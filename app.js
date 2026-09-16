@@ -104,7 +104,7 @@ function showStatus(message) {
 
 const themeOptions = [...document.querySelectorAll('.theme-option')];
 const themeColor = document.querySelector('meta[name="theme-color"]');
-const THEME_COLORS = { simple: '#e07a3f', adult: '#b2727f', cute: '#f0a8bd' };
+const THEME_COLORS = { simple: '#e07a3f', adult: '#b2727f', cute: '#f0a8bd', dark: '#1b1a1d' };
 
 for (const option of themeOptions) {
   option.addEventListener('click', () => setTheme(option.dataset.theme));

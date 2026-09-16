@@ -20,7 +20,9 @@
   // 画面が出る前に見た目を決める。あとから当てるとチカッと切り替わってしまう
   try {
     const saved = localStorage.getItem('theme');
-    if (saved === 'cute' || saved === 'adult') document.documentElement.dataset.theme = saved;
+    if (saved === 'cute' || saved === 'adult' || saved === 'dark') {
+      document.documentElement.dataset.theme = saved;
+    }
   } catch (error) { /* プライベートブラウズなどで使えない場合は既定の見た目 */ }
 </script>
 </head>
@@ -67,8 +69,9 @@
 
   <div class="theme-picker" role="group" aria-label="見た目を選ぶ">
     <button type="button" class="theme-option" data-theme="simple">シンプル</button>
-    <button type="button" class="theme-option" data-theme="adult">大人かわいい</button>
+    <button type="button" class="theme-option" data-theme="adult">大人</button>
     <button type="button" class="theme-option" data-theme="cute">かわいい</button>
+    <button type="button" class="theme-option" data-theme="dark">ダーク</button>
   </div>
 
   <p id="greeting" class="hint"></p>
