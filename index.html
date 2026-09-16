@@ -20,7 +20,7 @@
   // 画面が出る前に見た目を決める。あとから当てるとチカッと切り替わってしまう
   try {
     const saved = localStorage.getItem('theme');
-    if (saved) document.documentElement.dataset.theme = saved;
+    if (saved === 'cute' || saved === 'adult') document.documentElement.dataset.theme = saved;
   } catch (error) { /* プライベートブラウズなどで使えない場合は既定の見た目 */ }
 </script>
 </head>
@@ -28,8 +28,11 @@
 
 <!-- お花のイラスト。使い回せるよう1か所にまとめておく -->
 <svg class="sprite" aria-hidden="true" focusable="false">
+  <!-- 塗るか線で描くかは、見た目ごとにCSS変数で決める -->
   <symbol id="flower" viewBox="-12 -12 24 24">
-    <g fill="currentColor">
+    <g fill="var(--flower-fill, currentColor)"
+       stroke="var(--flower-stroke, none)"
+       stroke-width="var(--flower-stroke-width, 0)">
       <ellipse cx="0" cy="-5.6" rx="3.1" ry="5.1"/>
       <ellipse cx="0" cy="-5.6" rx="3.1" ry="5.1" transform="rotate(72)"/>
       <ellipse cx="0" cy="-5.6" rx="3.1" ry="5.1" transform="rotate(144)"/>
@@ -59,14 +62,14 @@
 <main id="screen-app" class="screen" hidden>
   <header>
     <h1><svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg>ごはん記録</h1>
-    <div class="header-actions">
-      <button id="theme-button" class="theme-button" type="button" aria-pressed="false">
-        <svg class="theme-flower" aria-hidden="true"><use href="#flower"/></svg>
-        <span id="theme-label">かわいく</span>
-      </button>
-      <button id="logout-button" class="link">ログアウト</button>
-    </div>
+    <button id="logout-button" class="link">ログアウト</button>
   </header>
+
+  <div class="theme-picker" role="group" aria-label="見た目を選ぶ">
+    <button type="button" class="theme-option" data-theme="simple">シンプル</button>
+    <button type="button" class="theme-option" data-theme="adult">大人かわいい</button>
+    <button type="button" class="theme-option" data-theme="cute">かわいい</button>
+  </div>
 
   <p id="greeting" class="hint"></p>
 

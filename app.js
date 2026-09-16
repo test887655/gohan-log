@@ -102,29 +102,31 @@ function showStatus(message) {
 
 // ---------- 見た目の切り替え ----------
 
-const themeButton = $('theme-button');
-const themeLabel = $('theme-label');
+const themeOptions = [...document.querySelectorAll('.theme-option')];
 const themeColor = document.querySelector('meta[name="theme-color"]');
-const THEME_COLORS = { simple: '#e07a3f', cute: '#f0a8bd' };
+const THEME_COLORS = { simple: '#e07a3f', adult: '#b2727f', cute: '#f0a8bd' };
 
-themeButton.addEventListener('click', () => {
-  setTheme(document.documentElement.dataset.theme === 'cute' ? 'simple' : 'cute');
-});
+for (const option of themeOptions) {
+  option.addEventListener('click', () => setTheme(option.dataset.theme));
+}
 
 function setTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  // 押すと反対の見た目に変わるボタンなので、ラベルは「次にどうなるか」を書く
-  themeLabel.textContent = theme === 'cute' ? 'シンプル' : 'かわいく';
-  themeButton.setAttribute('aria-pressed', String(theme === 'cute'));
-  themeButton.setAttribute('aria-label', theme === 'cute' ? 'シンプルな見た目に戻す' : 'かわいい見た目にする');
+  // simple は既定の見た目。data-theme を付けない状態がそれにあたる
+  if (theme === 'simple') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+
+  for (const option of themeOptions) {
+    option.setAttribute('aria-pressed', String(option.dataset.theme === theme));
+  }
   themeColor.setAttribute('content', THEME_COLORS[theme]);
+
   try {
     localStorage.setItem('theme', theme);
   } catch (error) { /* 保存できなくても、その場の切り替えは効く */ }
 }
 
 // 読み込み時点の見た目（head の script が当てたもの）にボタンを合わせる
-setTheme(document.documentElement.dataset.theme === 'cute' ? 'cute' : 'simple');
+setTheme(THEME_COLORS[document.documentElement.dataset.theme] ? document.documentElement.dataset.theme : 'simple');
 
 // ホーム画面に追加して使えるようにする（PWA）
 if ('serviceWorker' in navigator) {
