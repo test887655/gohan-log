@@ -34,7 +34,10 @@ SupabaseのRow Level Securityで実装する：
   - 撮り忘れた食事も残せるよう、写真なしでも投稿できる。写真なしの記録は
     テキストだけのカードとして表示し、あとから編集で写真を追加できる
 - 2人分が時系列で並ぶタイムライン。誰の投稿かわかる表示
+- 表示は1週間ずつ（月曜〜日曜）。前後の週に移動できる。一度に読む量を抑える狙いもある
 - 自分の投稿は編集・削除可
+- 相手の投稿には「いいね」「レシピが知りたい」を押せる。押すと色がつく
+  - 自分の投稿にはボタンを出さず、「◯◯さんがいいね」と名前で表示する
 
 ### 2. 食材リスト
 - 食材名・数量・単位・賞味期限・保存場所（冷蔵/冷凍/常温）
@@ -62,6 +65,10 @@ SupabaseのRow Level Securityで実装する：
 - profiles (id, display_name)
 - meals (id, user_id, photo_path, note, eaten_at, meal_type, created_at)
   - photo_path は NULL 可（写真なしの記録）
+- meal_reactions (id, meal_id, user_id, kind, created_at)
+  - kind は 'like'（いいね）か 'recipe'（レシピが知りたい）
+  - (meal_id, user_id, kind) が一意。押す＝insert、取り消す＝delete
+  - meals と同じ共有ルール：2人とも閲覧可、押す・取り消すは本人のみ
 - ingredients (id, user_id, name, quantity, unit, expires_on, storage, created_at)
 - recipes (id, user_id, title, steps, note, created_at)
 - recipe_ingredients (id, recipe_id, name, quantity, unit)

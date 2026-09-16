@@ -5,6 +5,26 @@ const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
 const SIGNED_URL_SECONDS = 60 * 60;
 
+// 相手の投稿に押せるボタン。自分の投稿には出さず、押してもらった分だけ文字で出す
+const REACTIONS = [
+  {
+    kind: 'like',
+    label: 'いいね',
+    told: 'がいいね',
+    path: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3'
+      + 'c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5'
+      + 'c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
+  },
+  {
+    kind: 'recipe',
+    label: 'レシピが知りたい',
+    told: 'がレシピを知りたがっています',
+    path: 'M12 7c-1.7-1.4-3.9-2-6-2-1 0-2 .15-3 .45v12.1c1-.3 2-.45 3-.45'
+      + ' 2.1 0 4.3.6 6 2 1.7-1.4 3.9-2 6-2 1 0 2 .15 3 .45V5.45c-1-.3-2-.45-3-.45'
+      + ' -2.1 0-4.3.6-6 2zm0 0v12',
+  },
+];
+
 const $ = (id) => document.getElementById(id);
 
 const loginScreen = $('screen-login');
@@ -304,6 +324,7 @@ async function loadTimeline() {
   }
 
   const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path).filter(Boolean));
+  await loadReactions(meals.map((meal) => meal.id));
 
   timelineStatus.hidden = true;
   timeline.replaceChildren(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
@@ -336,6 +357,119 @@ async function signedUrlsFor(paths) {
   return new Map(paths.map((path) => [path, signedUrlCache.get(path)?.url]));
 }
 
+// ---------- いいね / レシピが知りたい ----------
+
+let reactions = new Map(); // meal_id -> [{ user_id, kind }]
+
+async function loadReactions(mealIds) {
+  reactions = new Map();
+  if (mealIds.length === 0) return;
+
+  const { data, error } = await supabase
+    .from('meal_reactions')
+    .select('meal_id, user_id, kind')
+    .in('meal_id', mealIds);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  for (const row of data) {
+    if (!reactions.has(row.meal_id)) reactions.set(row.meal_id, []);
+    reactions.get(row.meal_id).push(row);
+  }
+}
+
+function makeIcon(type) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('reaction-icon');
+  const path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', type.path);
+  svg.append(path);
+  return svg;
+}
+
+function renderReactions(meal) {
+  const box = document.createElement('div');
+  box.className = 'reactions';
+  const rows = reactions.get(meal.id) ?? [];
+  const isMine = meal.user_id === currentUser.id;
+
+  for (const type of REACTIONS) {
+    const pressed = rows.filter((row) => row.kind === type.kind);
+
+    if (isMine) {
+      // 自分の投稿にはボタンを出さない。押してくれた人の名前だけ見せる
+      const names = pressed
+        .filter((row) => row.user_id !== currentUser.id)
+        .map((row) => displayNames.get(row.user_id) ?? '不明');
+      if (names.length === 0) continue;
+
+      const note = document.createElement('p');
+      note.className = 'reaction-note';
+      note.dataset.kind = type.kind;
+      note.append(makeIcon(type), document.createTextNode(`${names.join('・')} さん${type.told}`));
+      box.append(note);
+      continue;
+    }
+
+    const on = pressed.some((row) => row.user_id === currentUser.id);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'reaction';
+    button.dataset.kind = type.kind;
+    button.append(makeIcon(type), document.createTextNode(type.label));
+    setReactionState(button, on);
+    button.addEventListener('click', () => toggleReaction(meal, type.kind, button));
+    box.append(button);
+  }
+
+  return box.childElementCount > 0 ? box : null;
+}
+
+function setReactionState(button, on) {
+  button.classList.toggle('on', on);
+  button.setAttribute('aria-pressed', String(on));
+}
+
+async function toggleReaction(meal, kind, button) {
+  const on = button.classList.contains('on');
+  button.disabled = true;
+
+  try {
+    if (on) {
+      // 編集・削除と同じ理由で .select() を付け、0件なら失敗として扱う
+      const { data, error } = await supabase
+        .from('meal_reactions')
+        .delete()
+        .eq('meal_id', meal.id)
+        .eq('user_id', currentUser.id)
+        .eq('kind', kind)
+        .select();
+      if (error) throw error;
+      if (data.length === 0) throw new Error('ログインの有効期限が切れているかもしれません。');
+    } else {
+      // user_id はSupabase側でログイン中の本人が入る
+      const { error } = await supabase.from('meal_reactions').insert({ meal_id: meal.id, kind });
+      // 23505 は「すでに押してある」。取り消しではないので成功扱いでよい
+      if (error && error.code !== '23505') throw error;
+    }
+    setReactionState(button, !on);
+  } catch (error) {
+    console.error(error);
+    alert(`うまくいきませんでした：${error.message ?? error}`);
+    await refreshSession();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+// ---------- カードの組み立て ----------
+
 function renderMeal(meal, photoUrl) {
   const card = document.createElement('article');
   card.className = 'card';
@@ -363,6 +497,9 @@ function renderMeal(meal, photoUrl) {
     note.textContent = meal.note;
     card.append(note);
   }
+
+  const reactionBox = renderReactions(meal);
+  if (reactionBox) card.append(reactionBox);
 
   if (meal.user_id === currentUser.id) {
     const actions = document.createElement('div');

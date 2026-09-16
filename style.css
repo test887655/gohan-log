@@ -4,6 +4,7 @@
   --fg: #2e2a25;
   --muted: #8a8279;
   --accent: #e07a3f;
+  --like: #d7566a;
   --border: #e4ddd2;
   --error: #c0392b;
 }
@@ -272,6 +273,79 @@ legend {
 }
 
 .card .row { margin-top: 10px; }
+.reactions + .row { margin-top: 14px; }
+
+/* ---------- いいね / レシピが知りたい ---------- */
+
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.reaction:disabled { opacity: 0.5; cursor: default; }
+
+/* 押すと色がつく */
+.reaction.on[data-kind="like"] {
+  border-color: var(--like);
+  background: #fdeff1;
+  color: var(--like);
+}
+
+.reaction.on[data-kind="recipe"] {
+  border-color: var(--accent);
+  background: #fdf1e8;
+  color: var(--accent);
+}
+
+/* 自分の投稿に出る「◯◯さんがいいね」 */
+.reaction-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.reaction-note[data-kind="like"] { color: var(--like); }
+.reaction-note[data-kind="recipe"] { color: var(--accent); }
+
+.reaction-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+.reaction-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ハートだけは、押されたら塗りつぶす */
+.on[data-kind="like"] .reaction-icon path,
+.reaction-note[data-kind="like"] .reaction-icon path {
+  fill: currentColor;
+}
 
 /* ---------- その他 ---------- */
 
