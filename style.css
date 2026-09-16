@@ -76,34 +76,31 @@
 
 /* ダーク。夜に見てまぶしくないよう、真っ黒ではなく少し温かみのある暗さにする */
 :root[data-theme="dark"] {
-  --bg: #1b1a1d;
-  --card: #252329;
-  --fg: #ece8ea;
-  --muted: #a59da3;
-  --accent: #e9a2b6;
-  --like: #f0899d;
-  --recipe: #b8a4e0;
-  --border: #3a373f;
-  --error: #f2938c;
+  --bg: #1a1a1c;
+  --card: #232326;
+  /* 真っ白は暗い背景だと眩しいので、少し落とした白にする */
+  --fg: #e6e3de;
+  --muted: #9d9a95;
+  --accent: #d2a373;
+  --like: #de8f84;
+  --recipe: #a49dc4;
+  --border: #38373b;
+  --error: #e59086;
 
-  --field-bg: #2e2b32;
-  /* 明るいピンクの上に白文字は読めないので、濃い色を乗せる */
-  --on-accent: #2a1c22;
-  --error-bg: #3a2523;
-  --accent-tint: #372a31;
-  --like-tint: #3a2a30;
-  --recipe-tint: #2f2a3c;
+  --field-bg: #2c2c30;
+  /* 明るい色の上に白文字は読めないので、濃い色を乗せる */
+  --on-accent: #241a11;
+  --error-bg: #36241f;
+  --accent-tint: #332a20;
+  --like-tint: #352623;
+  --recipe-tint: #2c2935;
 
   --radius-card: 16px;
   --radius-input: 12px;
   --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 
-  /* 暗い背景では塗りつぶしのお花は重いので、線で描く */
-  --flower-fill: none;
-  --flower-stroke: currentColor;
-  --flower-stroke-width: 1.3;
-  --flower-core: currentColor;
-  --page-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='190' viewBox='0 0 190 190'%3E%3Cdefs%3E%3Cg id='f' fill='none' stroke='%23332f38' stroke-width='1.2'%3E%3Cellipse cy='-5.6' rx='3.1' ry='5.1'/%3E%3Cellipse cy='-5.6' rx='3.1' ry='5.1' transform='rotate(72)'/%3E%3Cellipse cy='-5.6' rx='3.1' ry='5.1' transform='rotate(144)'/%3E%3Cellipse cy='-5.6' rx='3.1' ry='5.1' transform='rotate(216)'/%3E%3Cellipse cy='-5.6' rx='3.1' ry='5.1' transform='rotate(288)'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23f' transform='translate(40 46)'/%3E%3Cuse href='%23f' transform='translate(140 118) rotate(24)'/%3E%3C/svg%3E");
+  /* ダークはお花も壁紙も出さない。落ち着いて見られることを優先する */
+  --page-pattern: none;
 
   /* 日時入力などの部品も暗い見た目にする */
   color-scheme: dark;
@@ -137,8 +134,7 @@ body {
 .flower { display: none; }
 
 :root[data-theme="cute"] .flower,
-:root[data-theme="adult"] .flower,
-:root[data-theme="dark"] .flower {
+:root[data-theme="adult"] .flower {
   display: inline-block;
   color: var(--accent);
   vertical-align: baseline;
