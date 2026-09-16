@@ -46,6 +46,7 @@ const saveButton = $('save-button');
 const formError = $('form-error');
 const timeline = $('timeline');
 const timelineStatus = $('timeline-status');
+const timelineEmpty = $('timeline-empty');
 const weekRange = $('week-range');
 const prevWeekButton = $('prev-week');
 const nextWeekButton = $('next-week');
@@ -93,6 +94,37 @@ function showError(element, message) {
   element.textContent = message;
   element.hidden = false;
 }
+
+function showStatus(message) {
+  timelineStatus.textContent = message;
+  timelineEmpty.hidden = false;
+}
+
+// ---------- 見た目の切り替え ----------
+
+const themeButton = $('theme-button');
+const themeLabel = $('theme-label');
+const themeColor = document.querySelector('meta[name="theme-color"]');
+const THEME_COLORS = { simple: '#e07a3f', cute: '#f0a8bd' };
+
+themeButton.addEventListener('click', () => {
+  setTheme(document.documentElement.dataset.theme === 'cute' ? 'simple' : 'cute');
+});
+
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  // 押すと反対の見た目に変わるボタンなので、ラベルは「次にどうなるか」を書く
+  themeLabel.textContent = theme === 'cute' ? 'シンプル' : 'かわいく';
+  themeButton.setAttribute('aria-pressed', String(theme === 'cute'));
+  themeButton.setAttribute('aria-label', theme === 'cute' ? 'シンプルな見た目に戻す' : 'かわいい見た目にする');
+  themeColor.setAttribute('content', THEME_COLORS[theme]);
+  try {
+    localStorage.setItem('theme', theme);
+  } catch (error) { /* 保存できなくても、その場の切り替えは効く */ }
+}
+
+// 読み込み時点の見た目（head の script が当てたもの）にボタンを合わせる
+setTheme(document.documentElement.dataset.theme === 'cute' ? 'cute' : 'simple');
 
 // ホーム画面に追加して使えるようにする（PWA）
 if ('serviceWorker' in navigator) {
@@ -297,8 +329,7 @@ function updateWeekLabel() {
 
 async function loadTimeline() {
   updateWeekLabel();
-  timelineStatus.textContent = '読み込み中…';
-  timelineStatus.hidden = false;
+  showStatus('読み込み中…');
 
   // 期限が切れていればここでトークンが更新される
   await supabase.auth.getSession();
@@ -313,20 +344,20 @@ async function loadTimeline() {
 
   if (error) {
     console.error(error);
-    timelineStatus.textContent = '読み込めませんでした。';
+    showStatus('読み込めませんでした。');
     return;
   }
 
   if (meals.length === 0) {
     timeline.replaceChildren();
-    timelineStatus.textContent = 'この週の記録はまだありません。';
+    showStatus('この週の記録はまだありません。');
     return;
   }
 
   const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path).filter(Boolean));
   await loadReactions(meals.map((meal) => meal.id));
 
-  timelineStatus.hidden = true;
+  timelineEmpty.hidden = true;
   timeline.replaceChildren(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
 }
 

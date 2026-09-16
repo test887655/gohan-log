@@ -2,11 +2,35 @@
   --bg: #fdfbf7;
   --card: #ffffff;
   --fg: #2e2a25;
-  --muted: #8a8279;
+  --muted: #7a7168;
   --accent: #e07a3f;
   --like: #d7566a;
+  --recipe: #e07a3f;
   --border: #e4ddd2;
   --error: #c0392b;
+
+  --radius-card: 14px;
+  --radius-input: 10px;
+  --card-shadow: none;
+  --page-pattern: none;
+}
+
+/* かわいい見た目。ヘッダーのボタンで切り替える */
+:root[data-theme="cute"] {
+  --bg: #fff8fa;
+  --card: #ffffff;
+  --fg: #4a3a41;
+  --muted: #806a73;
+  --accent: #e8829b;
+  --like: #ef6d80;
+  --recipe: #b98ad4;
+  --border: #f6dde4;
+
+  --radius-card: 22px;
+  --radius-input: 14px;
+  --card-shadow: 0 3px 14px rgba(232, 130, 155, 0.13);
+  --flower-core: #fff4cf;
+  --page-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cdefs%3E%3Cg id='f' fill='%23fae3ea'%3E%3Ccircle cy='-7' r='5.2'/%3E%3Ccircle cx='6.7' cy='-2.2' r='5.2'/%3E%3Ccircle cx='4.1' cy='5.7' r='5.2'/%3E%3Ccircle cx='-4.1' cy='5.7' r='5.2'/%3E%3Ccircle cx='-6.7' cy='-2.2' r='5.2'/%3E%3Ccircle r='3.2' fill='%23fdf2c9'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23f' transform='translate(28 34) scale(.95)'/%3E%3Cuse href='%23f' transform='translate(112 82) scale(.7) rotate(25)'/%3E%3Cuse href='%23f' transform='translate(62 124) scale(.55) rotate(-18)'/%3E%3C/svg%3E");
 }
 
 * { box-sizing: border-box; }
@@ -17,12 +41,86 @@
 body {
   margin: 0;
   padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
-  background: var(--bg);
+  background: var(--bg) var(--page-pattern);
   color: var(--fg);
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
 }
+
+/* ---------- お花のイラスト ---------- */
+
+/* 元絵の置き場。画面には出さない */
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* お花はかわいい見た目のときだけ出す */
+.flower { display: none; }
+
+:root[data-theme="cute"] .flower {
+  display: inline-block;
+  color: var(--accent);
+  vertical-align: baseline;
+}
+
+.flower-title {
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: 6px;
+}
+
+.flower-empty {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  color: #f4c9d6;
+}
+
+.empty {
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* ---------- 見た目の切り替えボタン ---------- */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.theme-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.theme-flower {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: #dcc6cd;
+}
+
+:root[data-theme="cute"] .theme-button {
+  border-color: var(--accent);
+  background: #fdeef3;
+  color: var(--accent);
+}
+
+:root[data-theme="cute"] .theme-flower { color: var(--accent); }
 
 .screen {
   max-width: 420px;
@@ -41,12 +139,14 @@ h2 {
 
 header {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px 12px;
+  margin-bottom: 16px;
 }
 
-header h1 { margin-bottom: 16px; }
+header h1 { margin-bottom: 0; }
 
 /* ---------- フォーム ---------- */
 
@@ -60,8 +160,9 @@ form {
   margin-bottom: 32px;
   padding: 20px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--card);
+  box-shadow: var(--card-shadow);
 }
 
 label {
@@ -79,7 +180,7 @@ input[type="datetime-local"] {
   font-size: 16px; /* iOSで自動ズームさせないため16px以上 */
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   background: #fff;
   color: var(--fg);
   font-family: inherit;
@@ -117,7 +218,7 @@ legend {
   align-items: center;
   padding: 10px 4px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   background: #fff;
   color: var(--fg);
   font-size: 0.95rem;
@@ -139,7 +240,7 @@ legend {
 
 .preview {
   width: 100%;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
 }
 
 /* ---------- ボタン ---------- */
@@ -148,7 +249,7 @@ legend {
   font-size: 1rem;
   padding: 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   background: var(--accent);
   color: #fff;
   font-family: inherit;
@@ -197,8 +298,9 @@ legend {
   margin-bottom: 12px;
   padding: 6px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--card);
+  box-shadow: var(--card-shadow);
 }
 
 .week-range {
@@ -241,8 +343,9 @@ legend {
 .card {
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--card);
+  box-shadow: var(--card-shadow);
 }
 
 .photo {
@@ -250,7 +353,7 @@ legend {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: var(--radius-input);
   background: var(--border);
 }
 
@@ -305,13 +408,15 @@ legend {
 .reaction.on[data-kind="like"] {
   border-color: var(--like);
   background: #fdeff1;
+  background: color-mix(in srgb, var(--like) 12%, #fff);
   color: var(--like);
 }
 
 .reaction.on[data-kind="recipe"] {
-  border-color: var(--accent);
-  background: #fdf1e8;
-  color: var(--accent);
+  border-color: var(--recipe);
+  background: #f5eefb;
+  background: color-mix(in srgb, var(--recipe) 12%, #fff);
+  color: var(--recipe);
 }
 
 /* 自分の投稿に出る「◯◯さんがいいね」 */
@@ -325,7 +430,7 @@ legend {
 }
 
 .reaction-note[data-kind="like"] { color: var(--like); }
-.reaction-note[data-kind="recipe"] { color: var(--accent); }
+.reaction-note[data-kind="recipe"] { color: var(--recipe); }
 
 .reaction-icon {
   width: 17px;
