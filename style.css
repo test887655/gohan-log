@@ -418,10 +418,24 @@ legend {
 
 .view-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+/* ごはんに戻るボタン。にんじんと同じく、ひと目で分かるよう実物の色で塗る */
+.rice-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.rice-bowl { fill: #7f9bb0; }
+
+.rice-grain {
+  fill: #fffaf0;
+  stroke: #ddd3c1;
+  stroke-width: 1;
 }
 
 /* ---------- 食材リスト ---------- */
