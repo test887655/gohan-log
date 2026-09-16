@@ -445,8 +445,8 @@ legend {
 .ingredient {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 14px;
+  gap: 6px;
+  padding: 4px 6px 4px 14px;
   border-top: 1px solid var(--border);
 }
 
@@ -503,11 +503,11 @@ legend {
 .stepper {
   display: flex;
   flex: none;
-  gap: 6px;
+  gap: 5px;
 }
 
 .step {
-  width: 38px;
+  width: 36px;
   height: 38px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -522,6 +522,25 @@ legend {
 .step:disabled {
   opacity: 0.3;
   cursor: default;
+}
+
+.trash-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 38px;
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.trash-icon {
+  width: 20px;
+  height: 20px;
 }
 
 /* ---------- 週の切り替え ---------- */

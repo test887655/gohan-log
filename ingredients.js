@@ -16,7 +16,6 @@ const quantityInput = $('ingredient-quantity');
 const unitChips = $('unit-chips');
 const expiresInput = $('ingredient-expires');
 const saveButton = $('ingredient-save');
-const deleteButton = $('ingredient-delete');
 const formError = $('ingredient-error');
 const list = $('ingredient-list');
 const listEmpty = $('ingredient-empty');
@@ -141,6 +140,15 @@ function renderIngredient(item) {
     row.append(stepper);
   }
 
+  // 使い切ったものは、その場で消せるようにする
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'trash-button';
+  remove.setAttribute('aria-label', `${item.name}を消す`);
+  remove.innerHTML = '<svg class="trash-icon" aria-hidden="true"><use href="#trash"/></svg>';
+  remove.addEventListener('click', () => deleteIngredient(item));
+  row.append(remove);
+
   return row;
 }
 
@@ -194,7 +202,6 @@ async function saveQuantity(item) {
 
 openButton.addEventListener('click', () => openForm(null));
 $('ingredient-cancel').addEventListener('click', closeForm);
-deleteButton.addEventListener('click', () => deleteIngredient(editing));
 
 // 一覧にない単位で登録されたものを編集するときは、その単位のボタンを足して選ぶ
 function selectUnit(unit) {
@@ -222,7 +229,6 @@ function openForm(item) {
   editing = item;
   formError.hidden = true;
   formTitle.textContent = item ? '食材を編集' : '食材を追加';
-  deleteButton.hidden = !item;
 
   nameInput.value = item?.name ?? '';
   quantityInput.value = item?.quantity ?? '';
@@ -238,7 +244,6 @@ function openForm(item) {
 
 function closeForm() {
   editing = null;
-  deleteButton.hidden = true;
   form.reset();
   form.hidden = true;
   openButton.hidden = false;
@@ -295,6 +300,7 @@ async function deleteIngredient(item) {
     alert('消せませんでした。もう一度開き直してから試してください。');
     return;
   }
-  closeForm();
+  // 消したものを編集中だったら、開いたままにしない
+  if (editing?.id === item.id) closeForm();
   await loadIngredients();
 }
