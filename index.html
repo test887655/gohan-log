@@ -67,23 +67,22 @@
     </g>
   </symbol>
 
-  <!-- 閉じたドア。ログアウトのボタンに使う。
-       にんじん改め冷蔵庫・お茶碗・プレゼントと同じで、色はSVGに直接書く。
-       上下に横木を渡すとドアだと分かる（フリー素材の絵を測って合わせた）。
-       扉には板の切り替えを2枚入れる。のっぺりした四角に見えなくなる -->
+  <!-- 開いたドア。ログアウトのボタンに使う。
+       冷蔵庫・お茶碗・プレゼントと同じで、色はSVGに直接書く。
+       上下に横木を渡すと26pxでもドアだと分かる（フリー素材の絵を測って合わせた）。
+       戸口の中は塗らない。背景が透けて、奥が見えている形になる -->
   <symbol id="door" viewBox="0 0 24 24">
     <!-- 上と下の横木 -->
     <rect x="4.3" y="0.5" width="15.4" height="1.34" fill="#b6afa6"/>
     <rect x="4.3" y="22.16" width="15.4" height="1.34" fill="#b6afa6"/>
     <!-- 戸口の枠。内側をくり抜くので fill-rule は evenodd -->
     <path d="M5.05 1.84H18.96V22.16H5.05Z M5.8 2.59H18.21V21.41H5.8Z" fill="#9a9289" fill-rule="evenodd"/>
-    <!-- 扉 -->
-    <rect x="5.8" y="2.59" width="12.41" height="18.82" fill="#8b8379"/>
-    <!-- 板の切り替え。枠と同じ色にして、へこんで見えるようにする -->
-    <rect x="7.6" y="4.4" width="6.4" height="5.6" fill="#9a9289"/>
-    <rect x="7.6" y="11.4" width="6.4" height="5.6" fill="#9a9289"/>
+    <!-- 蝶番側の影 -->
+    <rect x="5.8" y="2.59" width="0.37" height="18.82" fill="#746d64"/>
+    <!-- 手前に開いた扉 -->
+    <path d="M6.17 2.59L13.02 5.1V18.9L6.17 21.41Z" fill="#8b8379"/>
     <!-- 取っ手 -->
-    <circle cx="16.6" cy="12" r=".78" fill="#f2f0ee"/>
+    <ellipse cx="12.7" cy="12" rx=".83" ry=".53" fill="#f2f0ee"/>
   </symbol>
 
   <!-- ゴミ箱。食材を消すボタンに使う -->
@@ -123,7 +122,7 @@
         <svg class="gift-icon" aria-hidden="true"><use href="#gift"/></svg>
       </button>
     </div>
-    <button id="logout-button" class="icon-link" aria-label="ログアウト" title="ログアウト">
+    <button id="logout-button" class="icon-button" aria-label="ログアウト" title="ログアウト">
       <svg class="door-icon" aria-hidden="true"><use href="#door"/></svg>
     </button>
   </header>
