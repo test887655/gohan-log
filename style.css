@@ -430,9 +430,10 @@ legend {
   margin-bottom: 16px;
 }
 
+/* 冷蔵庫と同じ大きさにそろえる。行き来する対の2つなので */
 .rice-icon {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
 }
 
 /* ---------- 食材リスト ---------- */
