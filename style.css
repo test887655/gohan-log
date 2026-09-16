@@ -415,9 +415,11 @@ legend {
   color: var(--accent);
 }
 
+/* 冷蔵庫は縦長で幅が細いぶん、同じ大きさだと小さく見える。
+   にんじんのときと同じ見た目になるよう、少し大きめにする */
 .fridge-icon {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
 }
 
 .view-head {
