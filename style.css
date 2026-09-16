@@ -405,6 +405,10 @@ legend {
 }
 
 /* 食材リストを開いているあいだは色をつけて、今どちらを見ているか分かるようにする */
+/* 冷蔵庫とお茶碗は丸。行き来する対の2つなので、同じ形にそろえる。
+   ログアウトは四角のままにして、役目の違いが分かるようにする */
+.icon-button.round { border-radius: 999px; }
+
 .icon-button[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-tint);
