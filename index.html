@@ -67,14 +67,22 @@
     </g>
   </symbol>
 
-  <!-- どこでもドアふうの、すこし開いたピンクの扉。ログアウトのボタンに使う。
+  <!-- 開いたドア。ログアウトのボタンに使う。
        にんじん・お茶碗・プレゼントと同じで、色はSVGに直接書く。
-       小さくても色で分かるのが狙い。左の暗いところが「開いている」奥 -->
+       上下の横木があると、小さくしてもドアだと分かる（フリー素材の絵を測って合わせた）。
+       戸口の中は塗らない。背景が透けて、奥が見えている形になる -->
   <symbol id="door" viewBox="0 0 24 24">
-    <rect x="4.6" y="2.4" width="14.8" height="19.2" rx="1.3" fill="#3f3a35"/>
-    <rect x="7.6" y="2.4" width="11.8" height="19.2" rx="1.3" fill="#ee6f9e"/>
-    <rect x="7.6" y="2.4" width="11.8" height="19.2" rx="1.3" fill="none" stroke="#c94c78" stroke-width="1"/>
-    <circle cx="16.8" cy="12" r="1.5" fill="#ffd95e" stroke="#c9972c" stroke-width=".6"/>
+    <!-- 上と下の横木 -->
+    <rect x="4.3" y="0.5" width="15.4" height="1.34" fill="#f6a8c2"/>
+    <rect x="4.3" y="22.16" width="15.4" height="1.34" fill="#f6a8c2"/>
+    <!-- 戸口の枠。内側をくり抜くので fill-rule は evenodd -->
+    <path d="M5.05 1.84H18.96V22.16H5.05Z M5.8 2.59H18.21V21.41H5.8Z" fill="#ef7fa5" fill-rule="evenodd"/>
+    <!-- 蝶番側の影 -->
+    <rect x="5.8" y="2.59" width="0.37" height="18.82" fill="#d9558a"/>
+    <!-- 手前に開いた扉 -->
+    <path d="M6.17 2.59L13.02 5.1V18.9L6.17 21.41Z" fill="#e8699a"/>
+    <!-- 取っ手 -->
+    <ellipse cx="12.7" cy="12" rx=".83" ry=".53" fill="#f7eef2"/>
   </symbol>
 
   <!-- ゴミ箱。食材を消すボタンに使う -->
