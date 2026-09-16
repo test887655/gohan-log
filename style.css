@@ -166,7 +166,6 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
-  margin-bottom: 14px;
 }
 
 .theme-option {
@@ -360,28 +359,56 @@ legend {
 
 /* ---------- ごはん / 食材の切り替え ---------- */
 
-.tabs {
+/* 食材のボタンと見た目のボタンを、ヘッダーの下に1行で並べる */
+.toolbar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin: 14px 0 20px;
+  margin-bottom: 14px;
 }
 
-.tab {
-  flex: 1;
-  min-height: 44px;
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  padding: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius-input);
+  border-radius: 999px;
   background: var(--card);
   color: var(--muted);
-  font-size: 0.95rem;
-  font-family: inherit;
   cursor: pointer;
 }
 
-.tab[aria-selected="true"] {
+/* 食材リストを開いているあいだは色をつけて、今どちらを見ているか分かるようにする */
+.icon-button[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-tint);
   color: var(--accent);
+}
+
+.veg-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.veg-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.view-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 /* ---------- 食材リスト ---------- */

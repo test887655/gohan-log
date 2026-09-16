@@ -103,19 +103,20 @@ function showStatus(message) {
 
 // ---------- ごはん / 食材の切り替え ----------
 
-const tabs = [...document.querySelectorAll('.tab')];
+const ingredientToggle = $('ingredient-toggle');
 const loadedViews = new Set();
 let activeView = 'meals';
 
-for (const tab of tabs) {
-  tab.addEventListener('click', () => showView(tab.dataset.view));
-}
+// 野菜のボタンで食材リストを出し入れする
+ingredientToggle.addEventListener('click', () => {
+  showView(activeView === 'ingredients' ? 'meals' : 'ingredients');
+});
+
+$('back-to-meals').addEventListener('click', () => showView('meals'));
 
 function showView(view) {
   activeView = view;
-  for (const tab of tabs) {
-    tab.setAttribute('aria-selected', String(tab.dataset.view === view));
-  }
+  ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
   $('view-meals').hidden = view !== 'meals';
   $('view-ingredients').hidden = view !== 'ingredients';
 

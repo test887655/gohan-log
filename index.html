@@ -67,19 +67,26 @@
     <button id="logout-button" class="link">ログアウト</button>
   </header>
 
-  <div class="theme-picker" role="group" aria-label="見た目を選ぶ">
-    <button type="button" class="theme-option" data-theme="simple">シンプル</button>
-    <button type="button" class="theme-option" data-theme="adult">大人</button>
-    <button type="button" class="theme-option" data-theme="cute">かわいい</button>
-    <button type="button" class="theme-option" data-theme="dark">ダーク</button>
+  <div class="toolbar">
+    <button type="button" id="ingredient-toggle" class="icon-button" aria-pressed="false"
+            aria-label="食材リスト" title="食材リスト">
+      <svg class="veg-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 10.4c0-1 1.8-1.6 4-1.6s4 .6 4 1.6l-3.3 10.2c-.2.7-1.2.7-1.4 0L8 10.4z"/>
+        <path d="M12 8.8V4.2"/>
+        <path d="M12 6.6C10.5 4.3 8.8 3.4 6.9 3.7"/>
+        <path d="M12 6.6c1.5-2.3 3.2-3.2 5.1-2.9"/>
+      </svg>
+    </button>
+
+    <div class="theme-picker" role="group" aria-label="見た目を選ぶ">
+      <button type="button" class="theme-option" data-theme="simple">シンプル</button>
+      <button type="button" class="theme-option" data-theme="adult">大人</button>
+      <button type="button" class="theme-option" data-theme="cute">かわいい</button>
+      <button type="button" class="theme-option" data-theme="dark">ダーク</button>
+    </div>
   </div>
 
   <p id="greeting" class="hint"></p>
-
-  <nav class="tabs">
-    <button type="button" class="tab" data-view="meals" aria-selected="true">ごはん</button>
-    <button type="button" class="tab" data-view="ingredients" aria-selected="false">食材</button>
-  </nav>
 
   <section id="view-meals">
   <button id="open-form-button" class="primary block">＋ 記録する</button>
@@ -136,6 +143,11 @@
   </section>
 
   <section id="view-ingredients" hidden>
+    <div class="view-head">
+      <h2>食材リスト</h2>
+      <button type="button" id="back-to-meals" class="link">ごはんに戻る</button>
+    </div>
+
     <button id="open-ingredient-button" class="primary block">＋ 食材を追加</button>
 
     <form id="ingredient-form" hidden>
