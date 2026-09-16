@@ -41,6 +41,8 @@ SupabaseのRow Level Securityで実装する：
 
 ### 2. 食材リスト
 - 食材名・数量・単位・賞味期限・保存場所（冷蔵/冷凍/常温）
+  - 数量もボタンから選ぶ（なし/1〜10/任意）。「任意」を選ぶと自由入力欄が出て、
+    11以上や「半分」のような書き方も入れられる。日本語を打てるよう type は text
   - 単位はボタンから選ぶ（なし/個/g/ml/本/枚/袋/パック/玉/束/缶）。
     毎回打つのが面倒なので自由入力にはしない。
     一覧にない単位で登録済みのものは、編集時にそのボタンを足して選べるようにする
@@ -48,7 +50,8 @@ SupabaseのRow Level Securityで実装する：
 - 一覧は1品目1行に詰めて、全体を見渡せるようにする
 - 名前を押すと編集フォームが開く。削除は各行のゴミ箱アイコンから行う
 - 各行の − ＋ で、フォームを開かずに数量を増減できる。
-  連打されても通信が増えないよう、0.5秒待ってから最後の1回だけ送る
+  連打されても通信が増えないよう、0.5秒待ってから最後の1回だけ送る。
+  「半分」のように数で書かれていないものには − ＋ を出さない
 - 使い切ったら削除、または数量を減らす
 
 ### 3. レシピ帳
@@ -90,6 +93,7 @@ SupabaseのRow Level Securityで実装する：
   - (meal_id, user_id, kind) が一意。押す＝insert、取り消す＝delete
   - meals と同じ共有ルール：2人とも閲覧可、押す・取り消すは本人のみ
 - ingredients (id, user_id, name, quantity, unit, expires_on, storage, created_at)
+  - quantity は text（「半分」なども入れられるようにするため。10文字まで）
 - recipes (id, user_id, title, steps, note, created_at)
 - recipe_ingredients (id, recipe_id, name, quantity, unit)
 - recipe_photos (id, recipe_id, photo_path, cooked_on)

@@ -12,6 +12,7 @@ const openButton = $('open-ingredient-button');
 const form = $('ingredient-form');
 const formTitle = $('ingredient-form-title');
 const nameInput = $('ingredient-name');
+const quantityChips = $('quantity-chips');
 const quantityInput = $('ingredient-quantity');
 const unitChips = $('unit-chips');
 const expiresInput = $('ingredient-expires');
@@ -124,14 +125,14 @@ function renderIngredient(item) {
   main.append(line, meta);
   row.append(main);
 
-  // 数量があるものは、フォームを開かずにその場で増減できる
-  if (item.quantity !== null) {
+  // 数で書かれているものは、フォームを開かずにその場で増減できる
+  if (countOf(item) !== null) {
     const stepper = document.createElement('div');
     stepper.className = 'stepper';
 
     const minus = stepButton('−', '減らす');
     const plus = stepButton('＋', '増やす');
-    minus.disabled = Number(item.quantity) <= 0;
+    minus.disabled = countOf(item) <= 0;
 
     minus.addEventListener('click', () => stepQuantity(item, -1, amount, minus));
     plus.addEventListener('click', () => stepQuantity(item, 1, amount, minus));
@@ -161,11 +162,18 @@ function stepButton(sign, label) {
   return button;
 }
 
-// 数量だけ、単位だけでも書けるようにする
+// 数量だけ、単位だけでも書けるようにする。
+// 数量は「半分」のような書き方も残せるよう、文字のまま出す
 function amountText(item) {
-  const quantity = item.quantity === null ? '' : String(Number(item.quantity));
+  const quantity = item.quantity ?? '';
   const unit = item.unit ?? '';
   return `${quantity}${quantity && unit ? ' ' : ''}${unit}`;
+}
+
+// 「半分」のように数で書かれていないものは、− ＋ で増減できない
+function countOf(item) {
+  const number = Number(item.quantity);
+  return item.quantity !== null && item.quantity.trim() !== '' && Number.isFinite(number) ? number : null;
 }
 
 // ---------- その場での数量の増減 ----------
@@ -174,9 +182,9 @@ function amountText(item) {
 const pendingSaves = new Map(); // id -> タイマー
 
 function stepQuantity(item, delta, amountEl, minusButton) {
-  const next = Math.max(0, Math.round((Number(item.quantity) + delta) * 10) / 10);
+  const next = Math.max(0, Math.round((countOf(item) + delta) * 10) / 10);
 
-  item.quantity = next;
+  item.quantity = String(next);
   amountEl.textContent = amountText(item);
   minusButton.disabled = next <= 0;
 
@@ -225,13 +233,35 @@ function selectUnit(unit) {
   chip.checked = true;
 }
 
+// 11以上や「半分」などは「任意」を選んで自分で書く
+quantityChips.addEventListener('change', () => {
+  const custom = quantityChips.querySelector('input[name="quantity"]:checked').value === 'custom';
+  quantityInput.hidden = !custom;
+  if (custom) quantityInput.focus();
+  else quantityInput.value = '';
+});
+
+function selectQuantity(quantity) {
+  const text = quantity ?? '';
+  const preset = quantityChips.querySelector(`input[name="quantity"][value="${CSS.escape(text)}"]`);
+  // ボタンにある数（なし・1〜10）ならそれを押した形にする。それ以外は「任意」
+  const onPreset = text === '' || (preset && text !== 'custom');
+
+  quantityChips.querySelector(
+    onPreset ? `input[name="quantity"][value="${CSS.escape(text)}"]` : 'input[name="quantity"][value="custom"]'
+  ).checked = true;
+
+  quantityInput.value = onPreset ? '' : text;
+  quantityInput.hidden = onPreset;
+}
+
 function openForm(item) {
   editing = item;
   formError.hidden = true;
   formTitle.textContent = item ? '食材を編集' : '食材を追加';
 
   nameInput.value = item?.name ?? '';
-  quantityInput.value = item?.quantity ?? '';
+  selectQuantity(item?.quantity ?? '');
   expiresInput.value = item?.expires_on ?? '';
   selectUnit(item?.unit ?? '');
   const storage = item?.storage ?? 'fridge';
@@ -245,6 +275,7 @@ function openForm(item) {
 function closeForm() {
   editing = null;
   form.reset();
+  quantityInput.hidden = true;
   form.hidden = true;
   openButton.hidden = false;
 }
@@ -255,11 +286,12 @@ form.addEventListener('submit', async (event) => {
   saveButton.disabled = true;
   saveButton.textContent = '保存中…';
 
-  const quantity = quantityInput.value.trim();
+  const chosen = form.querySelector('input[name="quantity"]:checked').value;
+  const quantity = chosen === 'custom' ? quantityInput.value.trim() : chosen;
   const unit = form.querySelector('input[name="unit"]:checked').value;
   const values = {
     name: nameInput.value.trim(),
-    quantity: quantity === '' ? null : Number(quantity),
+    quantity: quantity === '' ? null : quantity,
     unit: unit === '' ? null : unit,
     expires_on: expiresInput.value || null,
     storage: form.querySelector('input[name="storage"]:checked').value,
