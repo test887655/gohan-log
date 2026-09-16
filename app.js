@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { shrinkImage } from './image.js';
+import { loadIngredients, clearIngredients } from './ingredients.js';
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
@@ -100,6 +101,34 @@ function showStatus(message) {
   timelineEmpty.hidden = false;
 }
 
+// ---------- ごはん / 食材の切り替え ----------
+
+const tabs = [...document.querySelectorAll('.tab')];
+const loadedViews = new Set();
+let activeView = 'meals';
+
+for (const tab of tabs) {
+  tab.addEventListener('click', () => showView(tab.dataset.view));
+}
+
+function showView(view) {
+  activeView = view;
+  for (const tab of tabs) {
+    tab.setAttribute('aria-selected', String(tab.dataset.view === view));
+  }
+  $('view-meals').hidden = view !== 'meals';
+  $('view-ingredients').hidden = view !== 'ingredients';
+
+  // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない
+  if (currentUser && !loadedViews.has(view)) reloadActiveView();
+}
+
+async function reloadActiveView() {
+  loadedViews.add(activeView);
+  if (activeView === 'meals') await loadTimeline();
+  else await loadIngredients();
+}
+
 // ---------- 見た目の切り替え ----------
 
 const themeOptions = [...document.querySelectorAll('.theme-option')];
@@ -181,6 +210,8 @@ async function handleSession(session) {
     loginScreen.hidden = false;
     passwordInput.value = '';
     timeline.replaceChildren();
+    clearIngredients();
+    loadedViews.clear();
     return;
   }
 
@@ -195,7 +226,8 @@ async function handleSession(session) {
   const myName = displayNames.get(currentUser.id) ?? currentUser.email;
   $('greeting').textContent = `${myName} さんとして記録中`;
 
-  await loadTimeline();
+  // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
+  await reloadActiveView();
 }
 
 // ---------- 投稿フォーム ----------

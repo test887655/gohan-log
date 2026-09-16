@@ -244,6 +244,8 @@ label {
 input[type="email"],
 input[type="password"],
 input[type="text"],
+input[type="number"],
+input[type="date"],
 input[type="datetime-local"] {
   font-size: 16px; /* iOSで自動ズームさせないため16px以上 */
   padding: 12px;
@@ -355,6 +357,100 @@ legend {
 }
 
 .row .primary { flex: 1; }
+
+/* ---------- ごはん / 食材の切り替え ---------- */
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 20px;
+}
+
+.tab {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--card);
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+/* ---------- 食材リスト ---------- */
+
+#ingredient-form {
+  margin-bottom: 32px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+/* 数量と単位を横に並べたときに、幅を半分ずつにする */
+.grow { flex: 1; min-width: 0; }
+
+#ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ingredient {
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+}
+
+/* 期限が近いものは赤い枠で目立たせる */
+.ingredient.soon {
+  border-color: var(--error);
+  background: var(--error-bg);
+}
+
+.ingredient-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+}
+
+.ingredient-name { font-size: 1.05rem; }
+
+.ingredient-amount {
+  flex: none;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ingredient .meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.badge {
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--field-bg);
+  font-size: 0.75rem;
+}
+
+.expiry.soon { color: var(--error); }
+
+.ingredient .row { margin-top: 10px; }
 
 /* ---------- 週の切り替え ---------- */
 

@@ -76,6 +76,12 @@
 
   <p id="greeting" class="hint"></p>
 
+  <nav class="tabs">
+    <button type="button" class="tab" data-view="meals" aria-selected="true">ごはん</button>
+    <button type="button" class="tab" data-view="ingredients" aria-selected="false">食材</button>
+  </nav>
+
+  <section id="view-meals">
   <button id="open-form-button" class="primary block">＋ 記録する</button>
 
   <form id="meal-form" hidden>
@@ -127,6 +133,66 @@
     <p id="timeline-status" class="hint">読み込み中…</p>
   </div>
   <section id="timeline"></section>
+  </section>
+
+  <section id="view-ingredients" hidden>
+    <button id="open-ingredient-button" class="primary block">＋ 食材を追加</button>
+
+    <form id="ingredient-form" hidden>
+      <h2 id="ingredient-form-title">食材を追加</h2>
+
+      <label>
+        名前
+        <input type="text" id="ingredient-name" maxlength="30" required>
+      </label>
+
+      <div class="row">
+        <label class="grow">
+          数量（任意）
+          <input type="number" id="ingredient-quantity" min="0" max="9999" step="0.1" inputmode="decimal">
+        </label>
+        <label class="grow">
+          単位（任意）
+          <input type="text" id="ingredient-unit" maxlength="10" list="unit-list" placeholder="個・g など">
+        </label>
+      </div>
+      <datalist id="unit-list">
+        <option value="個"></option>
+        <option value="g"></option>
+        <option value="ml"></option>
+        <option value="本"></option>
+        <option value="袋"></option>
+        <option value="パック"></option>
+        <option value="枚"></option>
+      </datalist>
+
+      <label>
+        賞味期限（任意）
+        <input type="date" id="ingredient-expires">
+      </label>
+
+      <fieldset>
+        <legend>保存場所</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="storage" value="fridge" aria-label="冷蔵" checked> 冷蔵</label>
+          <label class="chip"><input type="radio" name="storage" value="freezer" aria-label="冷凍"> 冷凍</label>
+          <label class="chip"><input type="radio" name="storage" value="pantry" aria-label="常温"> 常温</label>
+        </div>
+      </fieldset>
+
+      <div class="row">
+        <button type="submit" id="ingredient-save" class="primary">保存</button>
+        <button type="button" id="ingredient-cancel" class="link">キャンセル</button>
+      </div>
+      <p id="ingredient-error" class="error" hidden></p>
+    </form>
+
+    <div id="ingredient-empty" class="empty">
+      <svg class="flower flower-empty" aria-hidden="true"><use href="#flower"/></svg>
+      <p id="ingredient-status" class="hint">読み込み中…</p>
+    </div>
+    <section id="ingredient-list"></section>
+  </section>
 </main>
 
 <script type="module" src="app.js"></script>
