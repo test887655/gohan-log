@@ -186,7 +186,11 @@ loginForm.addEventListener('submit', async (event) => {
   }
 });
 
-$('logout-button').addEventListener('click', () => supabase.auth.signOut());
+// 絵だけのボタンなので、うっかり押したときのために一度たずねる
+$('logout-button').addEventListener('click', () => {
+  if (!confirm('ログアウトしますか？ 次に開くときは、メールアドレスとパスワードが必要です。')) return;
+  supabase.auth.signOut();
+});
 
 supabase.auth.onAuthStateChange((_event, session) => {
   // コールバック内で直接awaitすると固まることがあるため、処理を外に出す

@@ -67,6 +67,16 @@
     </g>
   </symbol>
 
+  <!-- どこでもドアふうの、すこし開いたピンクの扉。ログアウトのボタンに使う。
+       にんじん・お茶碗・プレゼントと同じで、色はSVGに直接書く。
+       小さくても色で分かるのが狙い。左の暗いところが「開いている」奥 -->
+  <symbol id="door" viewBox="0 0 24 24">
+    <rect x="4.6" y="2.4" width="14.8" height="19.2" rx="1.3" fill="#3f3a35"/>
+    <rect x="7.6" y="2.4" width="11.8" height="19.2" rx="1.3" fill="#ee6f9e"/>
+    <rect x="7.6" y="2.4" width="11.8" height="19.2" rx="1.3" fill="none" stroke="#c94c78" stroke-width="1"/>
+    <circle cx="16.8" cy="12" r="1.5" fill="#ffd95e" stroke="#c9972c" stroke-width=".6"/>
+  </symbol>
+
   <!-- ゴミ箱。食材を消すボタンに使う -->
   <symbol id="trash" viewBox="0 0 24 24">
     <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -104,7 +114,9 @@
         <svg class="gift-icon" aria-hidden="true"><use href="#gift"/></svg>
       </button>
     </div>
-    <button id="logout-button" class="link">ログアウト</button>
+    <button id="logout-button" class="icon-link" aria-label="ログアウト" title="ログアウト">
+      <svg class="door-icon" aria-hidden="true"><use href="#door"/></svg>
+    </button>
   </header>
 
   <div class="toolbar">
