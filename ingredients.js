@@ -125,17 +125,18 @@ function renderIngredient(item) {
   main.append(line, meta);
   row.append(main);
 
-  // 数で書かれているものは、フォームを開かずにその場で増減できる
-  if (countOf(item) !== null) {
+  // 数や「1/4」で書かれているものは、フォームを開かずにその場で増減できる
+  const fraction = fractionOf(item);
+  if (countOf(item) !== null || fraction) {
     const stepper = document.createElement('div');
     stepper.className = 'stepper';
 
     const minus = stepButton('−', '減らす');
     const plus = stepButton('＋', '増やす');
-    minus.disabled = countOf(item) <= 0;
+    setStepLimits(item, minus, plus);
 
-    minus.addEventListener('click', () => stepQuantity(item, -1, amount, minus));
-    plus.addEventListener('click', () => stepQuantity(item, 1, amount, minus));
+    minus.addEventListener('click', () => stepQuantity(item, -1, amount, minus, plus));
+    plus.addEventListener('click', () => stepQuantity(item, 1, amount, minus, plus));
 
     stepper.append(minus, plus);
     row.append(stepper);
@@ -170,10 +171,23 @@ function amountText(item) {
   return `${quantity}${quantity && unit ? ' ' : ''}${unit}`;
 }
 
-// 「半分」のように数で書かれていないものは、− ＋ で増減できない
+// 「少々」のように数で書かれていないものは、− ＋ で増減できない
 function countOf(item) {
   const number = Number(item.quantity);
   return item.quantity !== null && item.quantity.trim() !== '' && Number.isFinite(number) ? number : null;
+}
+
+// 「1/4」のような分け方。分母はそのままに、分子だけを 1 〜 分母 の間で動かす。
+// 1/4 → 2/4 → 3/4 → 4/4 と増やせて、それ以上は増やせない
+const FRACTION = /^(\d{1,3})\/(\d{1,3})$/;
+
+function fractionOf(item) {
+  const found = FRACTION.exec(item.quantity ?? '');
+  if (!found) return null;
+
+  const top = Number(found[1]);
+  const bottom = Number(found[2]);
+  return top >= 1 && top <= bottom ? { top, bottom } : null;
 }
 
 // ---------- その場での数量の増減 ----------
@@ -181,12 +195,26 @@ function countOf(item) {
 // 連打されても通信は最後の1回で済むよう、少し待ってからまとめて送る
 const pendingSaves = new Map(); // id -> タイマー
 
-function stepQuantity(item, delta, amountEl, minusButton) {
-  const next = Math.max(0, Math.round((countOf(item) + delta) * 10) / 10);
+// これ以上減らせない・増やせないところでは、押せないようにしておく
+function setStepLimits(item, minusButton, plusButton) {
+  const fraction = fractionOf(item);
 
-  item.quantity = String(next);
+  minusButton.disabled = fraction ? fraction.top <= 1 : countOf(item) <= 0;
+  plusButton.disabled = fraction ? fraction.top >= fraction.bottom : false;
+}
+
+function stepQuantity(item, delta, amountEl, minusButton, plusButton) {
+  const fraction = fractionOf(item);
+
+  if (fraction) {
+    const top = Math.min(fraction.bottom, Math.max(1, fraction.top + delta));
+    item.quantity = `${top}/${fraction.bottom}`;
+  } else {
+    item.quantity = String(Math.max(0, Math.round((countOf(item) + delta) * 10) / 10));
+  }
+
   amountEl.textContent = amountText(item);
-  minusButton.disabled = next <= 0;
+  setStepLimits(item, minusButton, plusButton);
 
   clearTimeout(pendingSaves.get(item.id));
   pendingSaves.set(item.id, setTimeout(() => saveQuantity(item), 500));
