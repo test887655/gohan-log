@@ -372,8 +372,8 @@ legend {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   flex: none;
   padding: 0;
   border: 1px solid var(--border);
@@ -391,16 +391,20 @@ legend {
 }
 
 .veg-icon {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
 }
 
-.veg-icon path {
+/* にんじんだと分かるよう、ここだけは見た目に関係なく実物の色で塗る */
+.veg-body { fill: #e8813a; }
+.veg-leaf path { fill: #63a84b; }
+
+.veg-line path {
   fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
+  stroke: #fff;
+  stroke-width: 1.1;
   stroke-linecap: round;
-  stroke-linejoin: round;
+  opacity: 0.5;
 }
 
 .view-head {
