@@ -16,6 +16,7 @@ const quantityInput = $('ingredient-quantity');
 const unitChips = $('unit-chips');
 const expiresInput = $('ingredient-expires');
 const saveButton = $('ingredient-save');
+const deleteButton = $('ingredient-delete');
 const formError = $('ingredient-error');
 const list = $('ingredient-list');
 const listEmpty = $('ingredient-empty');
@@ -41,9 +42,9 @@ function expiryLabel(dateText) {
   const [year, month, day] = dateText.split('-').map(Number);
   const date = dayFormatter.format(new Date(year, month - 1, day));
 
-  if (days < 0) return { text: `${date}（${-days}日すぎ）`, soon: true };
-  if (days === 0) return { text: `${date}（今日まで）`, soon: true };
-  if (days <= SOON_DAYS) return { text: `${date}（あと${days}日）`, soon: true };
+  if (days < 0) return { text: `${date} ${-days}日すぎ`, soon: true };
+  if (days === 0) return { text: `${date} 今日まで`, soon: true };
+  if (days <= SOON_DAYS) return { text: `${date} あと${days}日`, soon: true };
   return { text: `${date}まで`, soon: false };
 }
 
@@ -71,6 +72,8 @@ export async function loadIngredients() {
 }
 
 export function clearIngredients() {
+  for (const timer of pendingSaves.values()) clearTimeout(timer);
+  pendingSaves.clear();
   list.replaceChildren();
   closeForm();
 }
@@ -80,65 +83,74 @@ function showStatus(message) {
   listEmpty.hidden = false;
 }
 
-// ---------- カードの組み立て ----------
+// ---------- 一覧の組み立て ----------
 
+// 一覧では全体を見渡せることを優先して、1品目1行に収める。
+// 詳しい編集は名前を押してフォームを開く
 function renderIngredient(item) {
-  const card = document.createElement('article');
-  card.className = 'card ingredient';
+  const row = document.createElement('div');
+  row.className = 'ingredient';
 
-  const head = document.createElement('p');
-  head.className = 'ingredient-head';
+  const main = document.createElement('button');
+  main.type = 'button';
+  main.className = 'ingredient-main';
+  main.addEventListener('click', () => openForm(item));
+
+  const line = document.createElement('span');
+  line.className = 'ingredient-line';
 
   const name = document.createElement('span');
   name.className = 'ingredient-name';
   name.textContent = item.name;
-  head.append(name);
 
-  const amount = amountText(item);
-  if (amount) {
-    const span = document.createElement('span');
-    span.className = 'ingredient-amount';
-    span.textContent = amount;
-    head.append(span);
-  }
-  card.append(head);
+  const amount = document.createElement('span');
+  amount.className = 'ingredient-amount';
+  amount.textContent = amountText(item);
 
-  const meta = document.createElement('p');
-  meta.className = 'meta';
+  line.append(name, amount);
 
-  const place = document.createElement('span');
-  place.className = 'badge';
-  place.textContent = STORAGE_LABELS[item.storage] ?? item.storage;
-  meta.append(place);
+  const meta = document.createElement('span');
+  meta.className = 'ingredient-meta';
+  meta.append(STORAGE_LABELS[item.storage] ?? item.storage);
 
   if (item.expires_on) {
     const { text, soon } = expiryLabel(item.expires_on);
     const expiry = document.createElement('span');
     expiry.className = soon ? 'expiry soon' : 'expiry';
     expiry.textContent = text;
-    meta.append(expiry);
-    if (soon) card.classList.add('soon');
+    meta.append('・', expiry);
+    if (soon) row.classList.add('soon');
   }
-  card.append(meta);
 
-  const row = document.createElement('div');
-  row.className = 'row';
+  main.append(line, meta);
+  row.append(main);
 
-  const edit = document.createElement('button');
-  edit.type = 'button';
-  edit.className = 'link';
-  edit.textContent = '編集';
-  edit.addEventListener('click', () => openForm(item));
+  // 数量があるものは、フォームを開かずにその場で増減できる
+  if (item.quantity !== null) {
+    const stepper = document.createElement('div');
+    stepper.className = 'stepper';
 
-  const remove = document.createElement('button');
-  remove.type = 'button';
-  remove.className = 'link danger';
-  remove.textContent = '削除';
-  remove.addEventListener('click', () => deleteIngredient(item));
+    const minus = stepButton('−', '減らす');
+    const plus = stepButton('＋', '増やす');
+    minus.disabled = Number(item.quantity) <= 0;
 
-  row.append(edit, remove);
-  card.append(row);
-  return card;
+    minus.addEventListener('click', () => stepQuantity(item, -1, amount, minus));
+    plus.addEventListener('click', () => stepQuantity(item, 1, amount, minus));
+
+    stepper.append(minus, plus);
+    row.append(stepper);
+  }
+
+  return row;
+}
+
+function stepButton(sign, label) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'step';
+  button.textContent = sign;
+  button.setAttribute('aria-label', label);
+  return button;
 }
 
 // 数量だけ、単位だけでも書けるようにする
@@ -148,10 +160,41 @@ function amountText(item) {
   return `${quantity}${quantity && unit ? ' ' : ''}${unit}`;
 }
 
+// ---------- その場での数量の増減 ----------
+
+// 連打されても通信は最後の1回で済むよう、少し待ってからまとめて送る
+const pendingSaves = new Map(); // id -> タイマー
+
+function stepQuantity(item, delta, amountEl, minusButton) {
+  const next = Math.max(0, Math.round((Number(item.quantity) + delta) * 10) / 10);
+
+  item.quantity = next;
+  amountEl.textContent = amountText(item);
+  minusButton.disabled = next <= 0;
+
+  clearTimeout(pendingSaves.get(item.id));
+  pendingSaves.set(item.id, setTimeout(() => saveQuantity(item), 500));
+}
+
+async function saveQuantity(item) {
+  pendingSaves.delete(item.id);
+
+  // RLSに止められたときはエラーではなく0件が返る。件数で成否を見る
+  const { data, error } = await supabase
+    .from('ingredients').update({ quantity: item.quantity }).eq('id', item.id).select();
+
+  if (error || data.length === 0) {
+    console.error(error);
+    alert('数を変えられませんでした。開き直してから試してください。');
+    await loadIngredients();
+  }
+}
+
 // ---------- 追加・編集フォーム ----------
 
 openButton.addEventListener('click', () => openForm(null));
 $('ingredient-cancel').addEventListener('click', closeForm);
+deleteButton.addEventListener('click', () => deleteIngredient(editing));
 
 // 一覧にない単位で登録されたものを編集するときは、その単位のボタンを足して選ぶ
 function selectUnit(unit) {
@@ -179,6 +222,7 @@ function openForm(item) {
   editing = item;
   formError.hidden = true;
   formTitle.textContent = item ? '食材を編集' : '食材を追加';
+  deleteButton.hidden = !item;
 
   nameInput.value = item?.name ?? '';
   quantityInput.value = item?.quantity ?? '';
@@ -194,6 +238,7 @@ function openForm(item) {
 
 function closeForm() {
   editing = null;
+  deleteButton.hidden = true;
   form.reset();
   form.hidden = true;
   openButton.hidden = false;
@@ -250,5 +295,6 @@ async function deleteIngredient(item) {
     alert('消せませんでした。もう一度開き直してから試してください。');
     return;
   }
+  closeForm();
   await loadIngredients();
 }
