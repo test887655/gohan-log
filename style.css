@@ -446,18 +446,13 @@ legend {
   background: var(--error-bg);
 }
 
-.ingredient-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0;
-}
+/* 品目のすぐ横に個数を出したいので、文字として流し込む */
+.ingredient-head { margin: 0; }
 
 .ingredient-name { font-size: 1.05rem; }
 
 .ingredient-amount {
-  flex: none;
+  margin-left: 8px;
   font-size: 0.9rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
