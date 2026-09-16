@@ -44,6 +44,29 @@
     <circle r="2.5" fill="var(--flower-core, #fff)"/>
   </symbol>
 
+  <!-- キラキラ。ダイヤを2つ並べたもの。押すとポイントが貯まる -->
+  <symbol id="sparkle" viewBox="0 0 24 24">
+    <path d="M9.2 2.6l1.7 4.6 4.6 1.7-4.6 1.7-1.7 4.6-1.7-4.6L2.9 8.9l4.6-1.7z" fill="#f0b429"/>
+    <path d="M17.2 12.6l1 2.7 2.7 1-2.7 1-1 2.7-1-2.7-2.7-1 2.7-1z" fill="#f7d372"/>
+  </symbol>
+
+  <!-- 星。3日に一度のボーナスのときだけ、キラキラの代わりに出す -->
+  <symbol id="star" viewBox="0 0 24 24">
+    <path d="M12 2.4l2.9 6 6.6.9-4.8 4.7 1.1 6.6L12 17.5l-5.8 3.1 1.1-6.6L2.5 9.3l6.6-.9z"
+          fill="#f5c542" stroke="#dfa726" stroke-width=".8" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- プレゼント箱 -->
+  <symbol id="gift" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+      <path d="M4.2 11.4h15.6v8.1c0 .6-.5 1.1-1.1 1.1H5.3c-.6 0-1.1-.5-1.1-1.1z"/>
+      <path d="M3.2 7.8h17.6v3.6H3.2z"/>
+      <path d="M12 7.8v12.8"/>
+      <path d="M12 7.8C10.9 5.3 9.8 4 8.5 4a1.9 1.9 0 000 3.8z"/>
+      <path d="M12 7.8c1.1-2.5 2.2-3.8 3.5-3.8a1.9 1.9 0 010 3.8z"/>
+    </g>
+  </symbol>
+
   <!-- ゴミ箱。食材を消すボタンに使う -->
   <symbol id="trash" viewBox="0 0 24 24">
     <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -73,7 +96,14 @@
 
 <main id="screen-app" class="screen" hidden>
   <header>
-    <h1><svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg>ごはん記録</h1>
+    <div class="title-row">
+      <h1><svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg>ごはん記録</h1>
+      <button type="button" id="point-button" class="point-button"
+              aria-label="プレゼントを見る" title="プレゼント" hidden>
+        <span id="point-total">0</span>
+        <svg class="gift-icon" aria-hidden="true"><use href="#gift"/></svg>
+      </button>
+    </div>
     <button id="logout-button" class="link">ログアウト</button>
   </header>
 
@@ -255,6 +285,59 @@
     </div>
     <section id="ingredient-list"></section>
   </section>
+
+  <!-- 朝・昼・夜に1回ずつ、画面のどこかに出る -->
+  <button type="button" id="sparkle-button" class="sparkle" aria-label="キラキラを取る" hidden>
+    <svg class="sparkle-icon" aria-hidden="true"><use href="#sparkle"/></svg>
+  </button>
+  <p id="point-toast" class="point-toast" role="status" hidden></p>
+
+  <!-- プレゼント。用意するのは自分、選ぶのは相手 -->
+  <div id="gift-panel" class="overlay" hidden>
+    <div class="sheet">
+      <div class="view-head">
+        <h2>プレゼント</h2>
+        <button type="button" id="gift-close" class="link">閉じる</button>
+      </div>
+      <p class="hint"><strong id="gift-points">0</strong> ポイント持っています</p>
+
+      <h3 id="partner-gift-title">もらえるもの</h3>
+      <div id="partner-gifts" class="gift-list"></div>
+      <p id="partner-gifts-empty" class="hint" hidden>相手がまだ用意していません。</p>
+
+      <h3>自分が用意するもの</h3>
+      <div id="my-gifts" class="gift-list"></div>
+      <p id="my-gifts-empty" class="hint" hidden>まだありません。相手が選べるものを作りましょう。</p>
+
+      <button type="button" id="open-gift-form" class="primary block">＋ プレゼントを作る</button>
+
+      <form id="gift-form" hidden>
+        <h3 id="gift-form-title">プレゼントを作る</h3>
+        <label>
+          内容
+          <input type="text" id="gift-name" maxlength="30" placeholder="肩たたき券 など" required>
+        </label>
+        <label>
+          必要なポイント
+          <input type="number" id="gift-cost" min="1" max="9999" step="1" inputmode="numeric" required>
+        </label>
+        <div class="row">
+          <button type="submit" id="gift-save" class="primary">保存</button>
+          <button type="button" id="gift-cancel" class="link">キャンセル</button>
+        </div>
+        <p id="gift-error" class="error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- 相手がプレゼントを選んだときのお知らせ -->
+  <div id="gift-news" class="overlay" hidden>
+    <div class="sheet narrow">
+      <svg class="news-icon" aria-hidden="true"><use href="#gift"/></svg>
+      <p id="gift-news-text" class="news-text"></p>
+      <button type="button" id="gift-news-close" class="primary block">わかった</button>
+    </div>
+  </div>
 </main>
 
 <script type="module" src="app.js"></script>

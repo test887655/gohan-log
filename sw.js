@@ -8,6 +8,7 @@ const ASSETS = [
   './supabase.js',
   './image.js',
   './ingredients.js',
+  './points.js',
   './config.js',
   './manifest.json',
   './icons/icon-192.png',

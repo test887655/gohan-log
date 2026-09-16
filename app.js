@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
+import { loadPoints, clearPoints, setHomeScreen } from './points.js';
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
@@ -115,6 +116,8 @@ $('back-to-meals').addEventListener('click', () => showView('meals'));
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
+  // キラキラはごはんの画面にだけ出す
+  setHomeScreen(view === 'meals');
   $('view-meals').hidden = view !== 'meals';
   $('view-ingredients').hidden = view !== 'ingredients';
 
@@ -210,6 +213,7 @@ async function handleSession(session) {
     passwordInput.value = '';
     timeline.replaceChildren();
     clearIngredients();
+    clearPoints();
     loadedViews.clear();
     return;
   }
@@ -224,6 +228,8 @@ async function handleSession(session) {
 
   const myName = displayNames.get(currentUser.id) ?? currentUser.email;
   $('greeting').textContent = `${myName} さんとして記録中`;
+
+  await loadPoints(currentUser, displayNames);
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();
