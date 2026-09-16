@@ -108,7 +108,7 @@ const ingredientToggle = $('ingredient-toggle');
 const loadedViews = new Set();
 let activeView = 'meals';
 
-// にんじんは食材リストを開くだけ。戻るのはお茶碗のほうの役目
+// 冷蔵庫は食材リストを開くだけ。戻るのはお茶碗のほうの役目
 ingredientToggle.addEventListener('click', () => showView('ingredients'));
 
 $('back-to-meals').addEventListener('click', () => showView('meals'));
