@@ -26,10 +26,16 @@ const saveButton = $('save-button');
 const formError = $('form-error');
 const timeline = $('timeline');
 const timelineStatus = $('timeline-status');
+const weekRange = $('week-range');
+const prevWeekButton = $('prev-week');
+const nextWeekButton = $('next-week');
+const thisWeekButton = $('this-week');
 
 let currentUser = null;
 let displayNames = new Map();
 let editingMeal = null;
+// 表示中の週の月曜0時。1週間ぶんだけ読み込むことで、通信量を抑える
+let weekStart = startOfWeek(new Date());
 
 // ---------- 表示用のヘルパー ----------
 
@@ -41,6 +47,26 @@ function toInputValue(date) {
   const pad = (n) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
     + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+// ---------- 週の計算 ----------
+
+// その日が属する週の月曜0時を返す。日曜は前の月曜に寄せる
+function startOfWeek(date) {
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const shift = (monday.getDay() + 6) % 7; // 月=0 … 日=6
+  monday.setDate(monday.getDate() - shift);
+  return monday;
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function formatDot(date) {
+  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
 }
 
 function showError(element, message) {
@@ -213,6 +239,8 @@ mealForm.addEventListener('submit', async (event) => {
     }
 
     closeForm();
+    // 別の週の日付で保存したときは、その記録が見える週に移動する
+    weekStart = startOfWeek(new Date(values.eaten_at));
     await loadTimeline();
   } catch (error) {
     console.error(error);
@@ -223,20 +251,45 @@ mealForm.addEventListener('submit', async (event) => {
   }
 });
 
+// ---------- 週の切り替え ----------
+
+prevWeekButton.addEventListener('click', () => showWeek(addDays(weekStart, -7)));
+nextWeekButton.addEventListener('click', () => showWeek(addDays(weekStart, 7)));
+thisWeekButton.addEventListener('click', () => showWeek(startOfWeek(new Date())));
+
+function showWeek(start) {
+  weekStart = start;
+  loadTimeline();
+}
+
+function updateWeekLabel() {
+  const end = addDays(weekStart, 6);
+  weekRange.textContent = `${formatDot(weekStart)} 〜 ${formatDot(end)}`;
+
+  // 未来の週には進めない
+  const thisWeek = startOfWeek(new Date());
+  const isThisWeek = weekStart.getTime() === thisWeek.getTime();
+  nextWeekButton.disabled = isThisWeek;
+  thisWeekButton.hidden = isThisWeek;
+}
+
 // ---------- タイムライン ----------
 
 async function loadTimeline() {
+  updateWeekLabel();
   timelineStatus.textContent = '読み込み中…';
   timelineStatus.hidden = false;
 
   // 期限が切れていればここでトークンが更新される
   await supabase.auth.getSession();
 
+  const weekEnd = addDays(weekStart, 7);
   const { data: meals, error } = await supabase
     .from('meals')
     .select('*')
-    .order('eaten_at', { ascending: false })
-    .limit(100);
+    .gte('eaten_at', weekStart.toISOString())
+    .lt('eaten_at', weekEnd.toISOString())
+    .order('eaten_at', { ascending: false });
 
   if (error) {
     console.error(error);
@@ -246,22 +299,41 @@ async function loadTimeline() {
 
   if (meals.length === 0) {
     timeline.replaceChildren();
-    timelineStatus.textContent = 'まだ記録がありません。「＋ 記録する」から始めましょう。';
+    timelineStatus.textContent = 'この週の記録はまだありません。';
     return;
   }
 
-  // 非公開バケットなので、表示には期限つきのURLを発行する。写真なしの記録は対象外。
-  const paths = meals.map((meal) => meal.photo_path).filter(Boolean);
-  let urls = new Map();
-  if (paths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrls(paths, SIGNED_URL_SECONDS);
-    urls = new Map((signed ?? []).map((item) => [item.path, item.signedUrl]));
-  }
+  const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path).filter(Boolean));
 
   timelineStatus.hidden = true;
   timeline.replaceChildren(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
+}
+
+// 非公開バケットなので、表示には期限つきのURLを発行する。
+// 発行するたびにURLが変わり、ブラウザが写真を毎回ダウンロードし直してしまうので、
+// 一度作ったURLは期限が来るまで使い回す。週を行き来しても通信が増えない。
+const signedUrlCache = new Map(); // photo_path -> { url, expiresAt }
+
+async function signedUrlsFor(paths) {
+  const now = Date.now();
+  const missing = paths.filter((path) => {
+    const hit = signedUrlCache.get(path);
+    return !hit || hit.expiresAt <= now;
+  });
+
+  if (missing.length > 0) {
+    const { data: signed, error } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrls(missing, SIGNED_URL_SECONDS);
+    if (error) console.error(error);
+    // 期限ぎりぎりのURLを掴まないよう、5分早めに切れる扱いにする
+    const expiresAt = now + (SIGNED_URL_SECONDS - 300) * 1000;
+    for (const item of signed ?? []) {
+      if (item.signedUrl) signedUrlCache.set(item.path, { url: item.signedUrl, expiresAt });
+    }
+  }
+
+  return new Map(paths.map((path) => [path, signedUrlCache.get(path)?.url]));
 }
 
 function renderMeal(meal, photoUrl) {

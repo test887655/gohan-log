@@ -186,6 +186,49 @@ legend {
 
 .row .primary { flex: 1; }
 
+/* ---------- 週の切り替え ---------- */
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.week-range {
+  margin: 0;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.week-arrow {
+  width: 44px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--fg);
+  font-size: 1.5rem;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.week-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.week-jump {
+  display: block;
+  margin: -4px auto 12px;
+}
+
 /* ---------- タイムライン ---------- */
 
 #timeline {
