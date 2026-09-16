@@ -107,10 +107,8 @@ const ingredientToggle = $('ingredient-toggle');
 const loadedViews = new Set();
 let activeView = 'meals';
 
-// 野菜のボタンで食材リストを出し入れする
-ingredientToggle.addEventListener('click', () => {
-  showView(activeView === 'ingredients' ? 'meals' : 'ingredients');
-});
+// にんじんは食材リストを開くだけ。戻るのはお茶碗のほうの役目
+ingredientToggle.addEventListener('click', () => showView('ingredients'));
 
 $('back-to-meals').addEventListener('click', () => showView('meals'));
 
