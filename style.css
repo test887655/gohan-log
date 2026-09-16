@@ -90,10 +90,12 @@ body {
   vertical-align: baseline;
 }
 
+/* 文字の高さの真ん中に合わせる。
+   baseline だと文字より上に浮いて見えてしまうため、flex で中央ぞろえにする */
 .flower-title {
   width: 1.05em;
   height: 1.05em;
-  margin-right: 6px;
+  flex: none;
 }
 
 .flower-empty {
@@ -142,6 +144,9 @@ body {
 }
 
 h1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 1.4rem;
   margin: 0 0 24px;
 }
