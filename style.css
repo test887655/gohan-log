@@ -164,11 +164,16 @@ body {
 
 .theme-picker {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
 }
 
 .theme-option {
+  /* 名前が途中で折り返さないようにする。
+     入りきらないときはボタンごと下の行へ回す */
+  flex: none;
+  white-space: nowrap;
   min-height: 32px;
   padding: 4px 11px;
   border: 1px solid var(--border);
@@ -404,10 +409,18 @@ legend {
   cursor: pointer;
 }
 
-/* 食材リストを開いているあいだは色をつけて、今どちらを見ているか分かるようにする */
 /* 冷蔵庫とお茶碗は丸。行き来する対の2つなので、同じ形にそろえる。
    ログアウトは四角のままにして、役目の違いが分かるようにする */
 .icon-button.round { border-radius: 999px; }
+
+/* 冷蔵庫はいちばんよく押すので、丸ごと倍の大きさにする。
+   絵より白い部分を多めに増やして、押せる場所だと分かるようにする */
+#ingredient-toggle {
+  width: 96px;
+  height: 96px;
+}
+
+/* 食材リストを開いているあいだは色をつけて、今どちらを見ているか分かるようにする */
 
 .icon-button[aria-pressed="true"] {
   border-color: var(--accent);
@@ -418,8 +431,8 @@ legend {
 /* 冷蔵庫は縦長で幅が細いぶん、同じ大きさだと小さく見える。
    にんじんのときと同じ見た目になるよう、少し大きめにする */
 .fridge-icon {
-  width: 34px;
-  height: 34px;
+  width: 60px;
+  height: 60px;
 }
 
 .view-head {
