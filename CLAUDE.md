@@ -71,7 +71,11 @@ SupabaseのRow Level Securityで実装する：
   - 夜は日付をまたぐので、0:00〜4:59は前の日の夜として数える（1日は朝5時に変わる）
   - 出る場所は毎回変える。食材リストを開いているあいだは出さない
 - 3日に一度は星が出て、ボーナス10ポイント（その日の最初のひとつが星になる）。
-  2人とも同じ日が星になるよう、日付そのものから決める
+  2人とも同じ日が星になるよう、日付そのものから決める。
+  3食ボーナスは星の判定に数えない（先にそろえると星が出なくなってしまうため）
+- 朝・昼・夜の3食を記録した日は、ボーナス10ポイント。1日1回だけ。
+  間食は数に入れない。記録した瞬間と、開いたときに見に行く。
+  どの日のぶんかは食べた日時から決めるので、あとから日付を戻して記録してもよい
 - ポイントはタイトルの横に出し、プレゼントのマークを押すと交換の画面が開く
 - プレゼントは**贈る側が内容とポイント数を決めて並べ、相手が選ぶ**。
   減るのは選んだ側のポイント。用意した側は減らない
@@ -112,8 +116,10 @@ SupabaseのRow Level Securityで実装する：
 - recipe_photos (id, recipe_id, photo_path, cooked_on)
 - shopping_items (id, user_id, name, quantity, unit, done, created_at)
 - points (id, user_id, kind, amount, claim_day, slot, created_at)
-  - kind は 'sparkle'（キラキラ）'star'（ボーナス）'gift'（使った）。使うと amount はマイナス
-  - (user_id, claim_day, slot) が一意。同じ時間帯で二度は取れない
+  - kind は 'sparkle'（キラキラ）'star'（ボーナス）'meals'（3食そろった）
+    'gift'（使った）。使うと amount はマイナス
+  - (user_id, claim_day, slot) が一意。同じ時間帯で二度は取れない。
+    3食ボーナスも slot を 'meals' にして、この一意制約に乗せている
   - 残りは my_points() 関数で合計だけ受け取る（全行を持ってこない）
   - 直す・消すのポリシーは作らない。あとから書き換えられないようにするため
 - gift_items (id, user_id, name, cost, created_at)

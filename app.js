@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js';
 import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
-import { loadPoints, clearPoints, setHomeScreen } from './points.js';
+import { loadPoints, clearPoints, setHomeScreen, checkMealBonus } from './points.js';
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
@@ -333,6 +333,8 @@ mealForm.addEventListener('submit', async (event) => {
     // 別の週の日付で保存したときは、その記録が見える週に移動する
     weekStart = startOfWeek(new Date(values.eaten_at));
     await loadTimeline();
+    // その日の朝・昼・夜がそろったらボーナス
+    await checkMealBonus(new Date(values.eaten_at));
   } catch (error) {
     console.error(error);
     showError(formError, `保存できませんでした：${error.message ?? error}`);

@@ -6,6 +6,11 @@ const SPARKLE_POINTS = 3;
 const STAR_BONUS = 10;
 // 何日に一度、星（ボーナス）が出るか
 const BONUS_EVERY = 3;
+// 朝・昼・夜の3食がそろった日のボーナス
+const MEALS_BONUS = 10;
+const THREE_MEALS = ['breakfast', 'lunch', 'dinner'];
+// キラキラの slot。'meals' はここに入れない（星の判定に混ぜないため）
+const SPARKLE_SLOTS = ['morning', 'noon', 'night'];
 
 const $ = (id) => document.getElementById(id);
 
@@ -37,6 +42,7 @@ let me = null;
 let partner = null; // { id, name }
 let total = 0;
 let pending = null; // まだ取っていないキラキラ { day, slot, bonus }
+let claimedToday = new Set(); // 今日もう受け取った slot
 let editingGift = null;
 let onHomeScreen = true;
 
@@ -78,6 +84,7 @@ export async function loadPoints(user, displayNames) {
 
   await refreshTotal();
   await refreshSparkle();
+  await checkMealBonus();
   await showNews();
 }
 
@@ -85,6 +92,7 @@ export function clearPoints() {
   me = null;
   partner = null;
   pending = null;
+  claimedToday = new Set();
   total = 0;
   pointButton.hidden = true;
   sparkle.hidden = true;
@@ -126,11 +134,14 @@ async function refreshSparkle() {
     return;
   }
 
-  const claimed = new Set(data.map((row) => row.slot));
-  pending = claimed.has(now.slot)
+  claimedToday = new Set(data.map((row) => row.slot));
+  // 3食そろったボーナスは数に入れない。入れると星が出なくなってしまう
+  const sparkles = SPARKLE_SLOTS.filter((slot) => claimedToday.has(slot));
+
+  pending = claimedToday.has(now.slot)
     ? null
     // 星の日は、その日の最初のひとつを星にする
-    : { ...now, bonus: isBonusDay(now.day) && claimed.size === 0 };
+    : { ...now, bonus: isBonusDay(now.day) && sparkles.length === 0 };
 
   showSparkle();
 }
@@ -178,6 +189,7 @@ sparkle.addEventListener('click', async () => {
     return;
   }
 
+  claimedToday.add(claim.slot);
   setTotal(total + gained);
   showToast(claim.bonus ? `＋${gained} ポイント（ボーナス）` : `＋${gained} ポイント`);
 });
@@ -189,6 +201,64 @@ function showToast(message) {
   toast.hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { toast.hidden = true; }, 2000);
+}
+
+// ---------- 朝・昼・夜がそろった日のボーナス ----------
+
+// キラキラと同じ数えかた（1日は朝5時に変わる）で、その食事がどの日のものかを出す。
+// 夜ごはんを深夜に記録しても、その日のぶんとして数えられる
+function mealDay(when) {
+  const base = new Date(when);
+  if (base.getHours() < 5) base.setDate(base.getDate() - 1);
+  return dayText(base);
+}
+
+// 朝・昼・夜の3つがそろったら、その日1回だけ10ポイント。
+// 記録したときと、開いたとき（相手の端末…ではなく自分の別の端末で記録した場合）に見に行く
+export async function checkMealBonus(when = new Date()) {
+  if (!me) return;
+
+  const day = mealDay(when);
+  const today = day === currentSlot().day;
+  // 今日のぶんはもう分かっているので、受け取り済みなら数えに行かない
+  if (today && claimedToday.has('meals')) return;
+
+  const start = new Date(`${day}T05:00:00`);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  // タイムラインは2人分が並ぶので、自分の記録だけを数える
+  const { data, error } = await supabase
+    .from('meals').select('meal_type')
+    .eq('user_id', me.id)
+    .gte('eaten_at', start.toISOString())
+    .lt('eaten_at', end.toISOString());
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const kinds = new Set(data.map((row) => row.meal_type));
+  // 間食は数に入れない。朝・昼・夜がそろって初めてボーナス
+  if (!THREE_MEALS.every((kind) => kinds.has(kind))) return;
+
+  const { error: insertError } = await supabase.from('points').insert({
+    kind: 'meals',
+    amount: MEALS_BONUS,
+    claim_day: day,
+    slot: 'meals',
+  });
+
+  // 23505 はもう受け取っているとき（別の端末で記録した場合など）。黙って終わる
+  if (insertError) {
+    if (insertError.code !== '23505') console.error(insertError);
+    return;
+  }
+
+  if (today) claimedToday.add('meals');
+  setTotal(total + MEALS_BONUS);
+  showToast(`＋${MEALS_BONUS} ポイント（3食そろった）`);
 }
 
 // ---------- プレゼント ----------
