@@ -397,7 +397,8 @@ legend {
   flex: none;
   padding: 0;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  /* 角は見た目ごとの丸みに合わせる。シンプル10px〜かわいい14px */
+  border-radius: var(--radius-input);
   background: var(--card);
   color: var(--muted);
   cursor: pointer;
