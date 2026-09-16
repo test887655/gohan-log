@@ -282,6 +282,15 @@ legend {
   gap: 8px;
 }
 
+/* 単位のように数が多いものは、折り返して文字の幅ぶんだけ並べる */
+.chips.wrap { flex-wrap: wrap; }
+
+.chips.wrap .chip {
+  flex: 0 0 auto;
+  min-width: 52px;
+  padding: 8px 12px;
+}
+
 .chip {
   flex: 1;
   align-items: center;

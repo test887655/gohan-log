@@ -13,7 +13,7 @@ const form = $('ingredient-form');
 const formTitle = $('ingredient-form-title');
 const nameInput = $('ingredient-name');
 const quantityInput = $('ingredient-quantity');
-const unitInput = $('ingredient-unit');
+const unitChips = $('unit-chips');
 const expiresInput = $('ingredient-expires');
 const saveButton = $('ingredient-save');
 const formError = $('ingredient-error');
@@ -153,6 +153,28 @@ function amountText(item) {
 openButton.addEventListener('click', () => openForm(null));
 $('ingredient-cancel').addEventListener('click', closeForm);
 
+// 一覧にない単位で登録されたものを編集するときは、その単位のボタンを足して選ぶ
+function selectUnit(unit) {
+  // 前に足したぶんは毎回片付ける
+  for (const extra of unitChips.querySelectorAll('[data-added]')) extra.remove();
+
+  let chip = unitChips.querySelector(`input[name="unit"][value="${CSS.escape(unit)}"]`);
+
+  if (!chip) {
+    const label = document.createElement('label');
+    label.className = 'chip';
+    label.dataset.added = '';
+    chip = document.createElement('input');
+    chip.type = 'radio';
+    chip.name = 'unit';
+    chip.value = unit;
+    chip.setAttribute('aria-label', unit);
+    label.append(chip, ` ${unit}`);
+    unitChips.append(label);
+  }
+  chip.checked = true;
+}
+
 function openForm(item) {
   editing = item;
   formError.hidden = true;
@@ -160,8 +182,8 @@ function openForm(item) {
 
   nameInput.value = item?.name ?? '';
   quantityInput.value = item?.quantity ?? '';
-  unitInput.value = item?.unit ?? '';
   expiresInput.value = item?.expires_on ?? '';
+  selectUnit(item?.unit ?? '');
   const storage = item?.storage ?? 'fridge';
   form.querySelector(`input[name="storage"][value="${storage}"]`).checked = true;
 
@@ -184,7 +206,7 @@ form.addEventListener('submit', async (event) => {
   saveButton.textContent = '保存中…';
 
   const quantity = quantityInput.value.trim();
-  const unit = unitInput.value.trim();
+  const unit = form.querySelector('input[name="unit"]:checked').value;
   const values = {
     name: nameInput.value.trim(),
     quantity: quantity === '' ? null : Number(quantity),

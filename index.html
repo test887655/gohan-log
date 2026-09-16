@@ -166,25 +166,27 @@
         <input type="text" id="ingredient-name" maxlength="30" required>
       </label>
 
-      <div class="row">
-        <label class="grow">
-          数量（任意）
-          <input type="number" id="ingredient-quantity" min="0" max="9999" step="0.1" inputmode="decimal">
-        </label>
-        <label class="grow">
-          単位（任意）
-          <input type="text" id="ingredient-unit" maxlength="10" list="unit-list" placeholder="個・g など">
-        </label>
-      </div>
-      <datalist id="unit-list">
-        <option value="個"></option>
-        <option value="g"></option>
-        <option value="ml"></option>
-        <option value="本"></option>
-        <option value="袋"></option>
-        <option value="パック"></option>
-        <option value="枚"></option>
-      </datalist>
+      <label>
+        数量（任意）
+        <input type="number" id="ingredient-quantity" min="0" max="9999" step="0.1" inputmode="decimal">
+      </label>
+
+      <fieldset>
+        <legend>単位</legend>
+        <div class="chips wrap" id="unit-chips">
+          <label class="chip"><input type="radio" name="unit" value="" aria-label="なし" checked> なし</label>
+          <label class="chip"><input type="radio" name="unit" value="個" aria-label="個"> 個</label>
+          <label class="chip"><input type="radio" name="unit" value="g" aria-label="g"> g</label>
+          <label class="chip"><input type="radio" name="unit" value="ml" aria-label="ml"> ml</label>
+          <label class="chip"><input type="radio" name="unit" value="本" aria-label="本"> 本</label>
+          <label class="chip"><input type="radio" name="unit" value="枚" aria-label="枚"> 枚</label>
+          <label class="chip"><input type="radio" name="unit" value="袋" aria-label="袋"> 袋</label>
+          <label class="chip"><input type="radio" name="unit" value="パック" aria-label="パック"> パック</label>
+          <label class="chip"><input type="radio" name="unit" value="玉" aria-label="玉"> 玉</label>
+          <label class="chip"><input type="radio" name="unit" value="束" aria-label="束"> 束</label>
+          <label class="chip"><input type="radio" name="unit" value="缶" aria-label="缶"> 缶</label>
+        </div>
+      </fieldset>
 
       <label>
         賞味期限（任意）
