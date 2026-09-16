@@ -1,0 +1,31 @@
+# Supabaseの無料プランは、1週間ほとんどアクセスがないと一時停止される。
+# 判定はデータベースへのリクエスト数なので、2日に一度ここから1回だけ読みに行って
+# 止まらないようにする。読むのは meals だが、ログインしていないので中身は返ってこない
+# （RLSで守られている）。それでもデータベースには届くので、これで足りる。
+name: Supabaseを止めない
+
+on:
+  schedule:
+    # UTCの3:00＝日本の昼12:00。1・3・5…と1日おきに動く
+    - cron: '0 3 */2 * *'
+  # 手で動かして確かめたいとき用
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 接続先は config.js から読む。鍵を書き写さずに済むので、
+      # あとで変えるときも config.js の1か所だけ直せばよい
+      - name: Supabaseに1回だけ読みに行く
+        run: |
+          url=$(grep -oP "(?<=SUPABASE_URL = ')[^']+" config.js)
+          key=$(grep -oP "(?<=SUPABASE_KEY = ')[^']+" config.js)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "$url/rest/v1/meals?select=id&limit=1" \
+            -H "apikey: $key" -H "Authorization: Bearer $key")
+          echo "返事: $code"
+          # 200以外はデータベースまで届いていない。気づけるように失敗させる
+          test "$code" = "200"
