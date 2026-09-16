@@ -739,22 +739,22 @@ legend {
 .point-button {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-height: 34px;
-  padding: 3px 11px 3px 12px;
+  gap: 3px;
+  min-height: 28px;
+  padding: 2px 8px 2px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--accent-tint);
+  background: var(--card);
   color: var(--accent);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
 .gift-icon {
-  width: 20px;
-  height: 20px;
+  width: 17px;
+  height: 17px;
 }
 
 /* 朝・昼・夜に1回ずつ、画面のどこかに出るキラキラ */
