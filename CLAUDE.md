@@ -40,6 +40,8 @@ SupabaseのRow Level Securityで実装する：
 - 自分の投稿は編集・削除可
 - 相手の投稿には「いいね」「レシピが知りたい」を押せる。押すと色がつく
   - 自分の投稿にはボタンを出さず、「◯◯さんがいいね」と名前で表示する
+- 自分の記録には★（お気に入り）を付けられる。うまくできた記録を自分で認めるためのもの。
+  相手には出さない。付け外しは編集・削除と同じ行のボタンから
 
 ### 2. 食材リスト
 - 食材名・数量・単位・賞味期限・保存場所（冷蔵/冷凍/常温）
@@ -108,6 +110,7 @@ SupabaseのRow Level Securityで実装する：
 - meals (id, user_id, photo_path, note, place, eaten_at, meal_type, created_at)
   - photo_path は NULL 可（写真なしの記録）
   - place は外食したお店の名前。NULL 可（40文字まで）
+  - favorite は自分で付ける★。true / false（既定は false）
 - meal_reactions (id, meal_id, user_id, kind, created_at)
   - kind は 'like'（いいね）か 'recipe'（レシピが知りたい）
   - (meal_id, user_id, kind) が一意。押す＝insert、取り消す＝delete

@@ -6,6 +6,7 @@
   --accent: #e07a3f;
   --like: #d7566a;
   --recipe: #e07a3f;
+  --star: #dda02a;
   --border: #e4ddd2;
   --error: #c0392b;
 
@@ -16,6 +17,7 @@
   --accent-tint: #fdf1e8;
   --like-tint: #fdeff1;
   --recipe-tint: #fdf1e8;
+  --star-tint: #fdf5e3;
 
   --radius-card: 14px;
   --radius-input: 10px;
@@ -34,11 +36,13 @@
   --accent: #b2727f;
   --like: #bf6273;
   --recipe: #8b7f9b;
+  --star: #b08a52;
   --border: #e7dedb;
 
   --accent-tint: #f7eef0;
   --like-tint: #f9eef0;
   --recipe-tint: #f1eef5;
+  --star-tint: #f6f0e5;
 
   --radius-card: 16px;
   --radius-input: 12px;
@@ -61,11 +65,13 @@
   --accent: #e8829b;
   --like: #ef6d80;
   --recipe: #b98ad4;
+  --star: #e8a33c;
   --border: #f6dde4;
 
   --accent-tint: #fdeef3;
   --like-tint: #fdeff1;
   --recipe-tint: #f5eefb;
+  --star-tint: #fdf3e1;
 
   --radius-card: 22px;
   --radius-input: 14px;
@@ -84,6 +90,7 @@
   --accent: #d2a373;
   --like: #de8f84;
   --recipe: #a49dc4;
+  --star: #d2a758;
   --border: #38373b;
   --error: #e59086;
 
@@ -94,6 +101,7 @@
   --accent-tint: #332a20;
   --like-tint: #352623;
   --recipe-tint: #2c2935;
+  --star-tint: #332b1f;
 
   --radius-card: 16px;
   --radius-input: 12px;
@@ -707,6 +715,13 @@ legend {
   color: var(--recipe);
 }
 
+/* 自分で付けるお気に入りの★ */
+.reaction.on[data-kind="favorite"] {
+  border-color: var(--star);
+  background: var(--star-tint);
+  color: var(--star);
+}
+
 /* 自分の投稿に出る「◯◯さんがいいね」 */
 .reaction-note {
   display: inline-flex;
@@ -734,8 +749,9 @@ legend {
   stroke-linejoin: round;
 }
 
-/* ハートだけは、押されたら塗りつぶす */
+/* ハートと★は、押されたら塗りつぶす */
 .on[data-kind="like"] .reaction-icon path,
+.on[data-kind="favorite"] .reaction-icon path,
 .reaction-note[data-kind="like"] .reaction-icon path {
   fill: currentColor;
 }

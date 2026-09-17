@@ -7,6 +7,14 @@ const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
 const SIGNED_URL_SECONDS = 60 * 60;
 
+// 自分の投稿に自分で付ける印。うまくできた記録をあとから見返すため。
+// 相手には見えない置き方にせず、ボタンを出すのは本人のカードだけにする
+const FAVORITE = {
+  kind: 'favorite',
+  label: 'お気に入り',
+  path: 'M12 2.4l2.9 6 6.6.9-4.8 4.7 1.1 6.6L12 17.5l-5.8 3.1 1.1-6.6L2.5 9.3l6.6-.9z',
+};
+
 // 相手の投稿に押せるボタン。自分の投稿には出さず、押してもらった分だけ文字で出す
 const REACTIONS = [
   {
@@ -598,6 +606,14 @@ function renderMeal(meal, photoUrl) {
     const actions = document.createElement('div');
     actions.className = 'row';
 
+    const favoriteButton = document.createElement('button');
+    favoriteButton.type = 'button';
+    favoriteButton.className = 'reaction';
+    favoriteButton.dataset.kind = 'favorite';
+    favoriteButton.append(makeIcon(FAVORITE), document.createTextNode(FAVORITE.label));
+    setReactionState(favoriteButton, meal.favorite === true);
+    favoriteButton.addEventListener('click', () => toggleFavorite(meal, favoriteButton));
+
     const editButton = document.createElement('button');
     editButton.className = 'link';
     editButton.textContent = '編集';
@@ -608,11 +624,35 @@ function renderMeal(meal, photoUrl) {
     deleteButton.textContent = '削除';
     deleteButton.addEventListener('click', () => deleteMeal(meal));
 
-    actions.append(editButton, deleteButton);
+    actions.append(favoriteButton, editButton, deleteButton);
     card.append(actions);
   }
 
   return card;
+}
+
+// 自分の記録に★を付け外しする
+async function toggleFavorite(meal, button) {
+  const on = !button.classList.contains('on');
+  button.disabled = true;
+  try {
+    // 編集・削除と同じ理由で .select() を付け、0件なら失敗として扱う
+    const { data, error } = await supabase
+      .from('meals')
+      .update({ favorite: on })
+      .eq('id', meal.id)
+      .select();
+    if (error) throw error;
+    if (data.length === 0) throw new Error('ログインの有効期限が切れているかもしれません。');
+    meal.favorite = on;
+    setReactionState(button, on);
+  } catch (error) {
+    console.error(error);
+    alert(`うまくいきませんでした：${error.message ?? error}`);
+    await refreshSession();
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function deleteMeal(meal) {
