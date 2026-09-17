@@ -229,7 +229,9 @@ SupabaseのRow Level Securityで実装する：
 - SupabaseのSQLはブラウザ操作で実行できる（EdgeでSupabaseにログイン済み）。
   publishable キーではDDLを実行できないため、テーブル追加時はこの方法を使う。
   Runボタンは押しても効かないことがある。エディタの中を1回クリックしてから
-  Ctrl+Enter を押すほうが確実
+  Ctrl+Enter を押すほうが確実。
+  SQLのタブが裏に隠れている（別のタブが表・ウィンドウが最小化）と「Running...」のまま
+  結果が返ってこない。そのときは使っているSQLのタブを表に出してもらう
 - テーブルの user_id は列の既定値（default auth.uid()）で入れている。
   insert のときに user_id を送っていないので、新しい表を足すときは
   この既定値を忘れずに付ける。ないと not null で保存できない
