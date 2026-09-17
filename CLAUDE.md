@@ -45,7 +45,7 @@ SupabaseのRow Level Securityで実装する：
 - chat_seen：本人のみ（相手ごとに、最後に開いた時刻を持つだけ）
 - partners：自分の行だけ読める。書き換えはダッシュボードのSQLからだけ行う
 - 相手を足すときは、profiles に表示名、partners に両向き2行を入れる
-- ingredients / recipes / shopping_items：本人のみ閲覧・作成・編集・削除
+- ingredients / recipes / shopping_items / ingredient_edits：本人のみ
 
 ## 機能
 ### 1. 食事ログ（最優先）
@@ -87,6 +87,9 @@ SupabaseのRow Level Securityで実装する：
   連打されても通信が増えないよう、0.5秒待ってから最後の1回だけ送る。
   「1/4」のような分数は分母をそのままに 1/4→2/4→3/4→4/4 と動かす（4/4より上と
   1/4より下には行かない）。「少々」のように数で書かれていないものには − ＋ を出さない
+- 「＋ 食材を追加」のすぐ下に、最後に直した日時を小さく右寄せで出す。
+  足した・消した・− ＋ で数を変えた・フォームで直した、のどれでも今の時刻に更新する。
+  消した行は無くなってしまうので、日時は ingredient_edits に1人1行で持つ
 - 使い切ったら削除、または数量を減らす
 
 ### 3. レシピ帳
@@ -184,6 +187,10 @@ SupabaseのRow Level Securityで実装する：
   - 赤い丸を出すためだけの表。最後にそうだんを開いた時刻を、相手ごとに1行で持つ
     （主キーは user_id と partner_id の組）。
     seen_at より新しい「その相手の書き込み」があれば丸を出す
+- ingredient_edits (user_id, edited_at)
+  - 食材リストを最後に直した日時。本人だけが読める。
+    書き込みは関数 touch_ingredients()（security definer）から行う。
+    この関数が auth.uid() の行を作る／今の時刻に直して、その日時を返す
 - ingredients (id, user_id, name, quantity, unit, expires_on, storage, created_at)
   - quantity は text（「半分」なども入れられるようにするため。10文字まで）
 - recipes (id, user_id, title, steps, note, created_at)

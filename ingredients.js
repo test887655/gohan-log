@@ -18,6 +18,7 @@ const unitChips = $('unit-chips');
 const expiresInput = $('ingredient-expires');
 const saveButton = $('ingredient-save');
 const formError = $('ingredient-error');
+const editedLine = $('ingredient-edited');
 const list = $('ingredient-list');
 const listEmpty = $('ingredient-empty');
 const listStatus = $('ingredient-status');
@@ -25,6 +26,29 @@ const listStatus = $('ingredient-status');
 let editing = null;
 
 const dayFormatter = new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' });
+// 最後に直した日時。何をいつ変えたか思い出せるよう、時刻まで出す
+const editedFormatter = new Intl.DateTimeFormat('ja-JP', {
+  month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit',
+});
+
+// ---------- 最後に直した日時 ----------
+
+function showEdited(when) {
+  if (!when) {
+    editedLine.hidden = true;
+    return;
+  }
+  editedLine.textContent = `さいご直したの：${editedFormatter.format(new Date(when))}`;
+  editedLine.hidden = false;
+}
+
+// 足した・消した・数を変えたときに呼ぶ。消したものは行ごと無くなるので、
+// 日時は ingredient_edits に1人1行で持たせている（関数の中で auth.uid() を使う）
+async function touchEdited() {
+  const { data, error } = await supabase.rpc('touch_ingredients');
+  if (error) console.error(error);
+  else showEdited(data);
+}
 
 // ---------- 期限の見かた ----------
 
@@ -67,6 +91,11 @@ export async function loadIngredients() {
 
   list.replaceChildren(...data.map(renderIngredient));
 
+  const { data: edited, error: editedError } = await supabase
+    .from('ingredient_edits').select('edited_at').maybeSingle();
+  if (editedError) console.error(editedError);
+  showEdited(edited?.edited_at);
+
   if (data.length === 0) showStatus('まだ食材がありません。上の「＋ 食材を追加」から登録できます。');
   else listEmpty.hidden = true;
 }
@@ -76,6 +105,7 @@ export function clearIngredients() {
   pendingSaves.clear();
   list.replaceChildren();
   closeForm();
+  showEdited(null);
 }
 
 function showStatus(message) {
@@ -242,7 +272,9 @@ async function saveQuantity(item) {
     console.error(error);
     alert('数を変えられませんでした。開き直してから試してください。');
     await loadIngredients();
+    return;
   }
+  await touchEdited();
 }
 
 // ---------- 追加・編集フォーム ----------
@@ -349,6 +381,7 @@ form.addEventListener('submit', async (event) => {
     }
 
     closeForm();
+    await touchEdited();
     await loadIngredients();
   } catch (error) {
     console.error(error);
@@ -373,5 +406,6 @@ async function deleteIngredient(item) {
   }
   // 消したものを編集中だったら、開いたままにしない
   if (editing?.id === item.id) closeForm();
+  await touchEdited();
   await loadIngredients();
 }

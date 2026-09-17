@@ -471,6 +471,13 @@ legend {
 }
 
 /* 見出しの右に、ボタンを2つ並べるとき */
+/* 食材リストを最後に直した日時。追加ボタンのすぐ下に小さく出す */
+.edited-line {
+  margin: 8px 0 0;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
 .head-buttons {
   display: flex;
   flex: none;
