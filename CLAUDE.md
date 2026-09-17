@@ -38,7 +38,7 @@ SupabaseのRow Level Securityで実装する：
 - 2人分が時系列で並ぶタイムライン。誰の投稿かわかる表示
 - 表示は1週間ずつ（月曜〜日曜）。前後の週に移動できる。一度に読む量を抑える狙いもある
 - 自分の投稿は編集・削除可
-- 相手の投稿には「いいね」「レシピが知りたい」を押せる。押すと色がつく
+- 相手の投稿には「いいね」「おいしそう」「レシピが知りたい」を押せる。押すと色がつく
   - 自分の投稿にはボタンを出さず、「◯◯さんがいいね」と名前で表示する
 - 自分の記録には★（お気に入り）を付けられる。うまくできた記録を自分で認めるためのもの。
   相手には出さない。付け外しは編集・削除と同じ行のボタンから
@@ -115,7 +115,7 @@ SupabaseのRow Level Securityで実装する：
   - place は外食したお店の名前。NULL 可（40文字まで）
   - favorite は自分で付ける★。true / false（既定は false）
 - meal_reactions (id, meal_id, user_id, kind, created_at)
-  - kind は 'like'（いいね）か 'recipe'（レシピが知りたい）
+  - kind は 'like'（いいね）'yummy'（おいしそう）'recipe'（レシピが知りたい）
   - (meal_id, user_id, kind) が一意。押す＝insert、取り消す＝delete
   - meals と同じ共有ルール：2人とも閲覧可、押す・取り消すは本人のみ
 - ingredients (id, user_id, name, quantity, unit, expires_on, storage, created_at)
@@ -158,7 +158,9 @@ SupabaseのRow Level Securityで実装する：
 
 ### 決まったこと・注意点
 - SupabaseのSQLはブラウザ操作で実行できる（EdgeでSupabaseにログイン済み）。
-  publishable キーではDDLを実行できないため、テーブル追加時はこの方法を使う
+  publishable キーではDDLを実行できないため、テーブル追加時はこの方法を使う。
+  Runボタンは押しても効かないことがある。エディタの中を1回クリックしてから
+  Ctrl+Enter を押すほうが確実
 - RLSは編集・削除の失敗時にエラーではなく「0件」を返す。
   update / delete には必ず `.select()` を付け、0件を失敗として扱うこと
 - Service Workerの fetch には `cache: 'reload'` が必須。

@@ -7,6 +7,7 @@
   --like: #d7566a;
   --recipe: #e07a3f;
   --star: #dda02a;
+  --yummy: #4f9468;
   --border: #e4ddd2;
   --error: #c0392b;
 
@@ -18,6 +19,7 @@
   --like-tint: #fdeff1;
   --recipe-tint: #fdf1e8;
   --star-tint: #fdf5e3;
+  --yummy-tint: #e9f4ec;
 
   --radius-card: 14px;
   --radius-input: 10px;
@@ -37,12 +39,14 @@
   --like: #bf6273;
   --recipe: #8b7f9b;
   --star: #b08a52;
+  --yummy: #7b9179;
   --border: #e7dedb;
 
   --accent-tint: #f7eef0;
   --like-tint: #f9eef0;
   --recipe-tint: #f1eef5;
   --star-tint: #f6f0e5;
+  --yummy-tint: #eef2ee;
 
   --radius-card: 16px;
   --radius-input: 12px;
@@ -66,12 +70,14 @@
   --like: #ef6d80;
   --recipe: #b98ad4;
   --star: #e8a33c;
+  --yummy: #5cb583;
   --border: #f6dde4;
 
   --accent-tint: #fdeef3;
   --like-tint: #fdeff1;
   --recipe-tint: #f5eefb;
   --star-tint: #fdf3e1;
+  --yummy-tint: #e8f6ee;
 
   --radius-card: 22px;
   --radius-input: 14px;
@@ -91,6 +97,7 @@
   --like: #de8f84;
   --recipe: #a49dc4;
   --star: #d2a758;
+  --yummy: #87bb98;
   --border: #38373b;
   --error: #e59086;
 
@@ -102,6 +109,7 @@
   --like-tint: #352623;
   --recipe-tint: #2c2935;
   --star-tint: #332b1f;
+  --yummy-tint: #233028;
 
   --radius-card: 16px;
   --radius-input: 12px;
@@ -752,6 +760,12 @@ legend {
   color: var(--recipe);
 }
 
+.reaction.on[data-kind="yummy"] {
+  border-color: var(--yummy);
+  background: var(--yummy-tint);
+  color: var(--yummy);
+}
+
 /* 自分で付けるお気に入りの★ */
 .reaction.on[data-kind="favorite"] {
   border-color: var(--star);
@@ -770,6 +784,7 @@ legend {
 }
 
 .reaction-note[data-kind="like"] { color: var(--like); }
+.reaction-note[data-kind="yummy"] { color: var(--yummy); }
 .reaction-note[data-kind="recipe"] { color: var(--recipe); }
 
 .reaction-icon {
