@@ -616,7 +616,8 @@ legend {
 
 /* ---------- タイムライン ---------- */
 
-#timeline {
+#timeline,
+#favorite-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -652,6 +653,42 @@ legend {
 }
 
 .card.no-photo .meta { margin-top: 0; }
+
+/* ★を付けた記録の画面へ行くボタン。週の並びの右下に小さく置く */
+.favorite-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0 4px;
+}
+
+.favorite-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.star-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+/* 「もっと見る」は幅いっぱいに置いて、押しやすくする */
+.block-link {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  text-align: center;
+}
 
 /* 外食したお店。メモより控えめにして、日時の続きに見えるようにする */
 .place-text {

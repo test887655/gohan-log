@@ -58,6 +58,10 @@ const formError = $('form-error');
 const timeline = $('timeline');
 const timelineStatus = $('timeline-status');
 const timelineEmpty = $('timeline-empty');
+const favoriteList = $('favorite-list');
+const favoriteStatus = $('favorite-status');
+const favoriteEmpty = $('favorite-empty');
+const favoriteMore = $('favorite-more');
 const weekRange = $('week-range');
 const prevWeekButton = $('prev-week');
 const nextWeekButton = $('next-week');
@@ -122,6 +126,10 @@ ingredientToggle.addEventListener('click', () => showView('ingredients'));
 
 $('back-to-meals').addEventListener('click', () => showView('meals'));
 
+// ★を付けた記録だけの画面。戻るのは食材リストと同じお茶碗
+$('favorite-open').addEventListener('click', () => showView('favorites'));
+$('back-to-meals-favorites').addEventListener('click', () => showView('meals'));
+
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
@@ -129,6 +137,7 @@ function showView(view) {
   setHomeScreen(view === 'meals');
   $('view-meals').hidden = view !== 'meals';
   $('view-ingredients').hidden = view !== 'ingredients';
+  $('view-favorites').hidden = view !== 'favorites';
 
   // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない
   if (currentUser && !loadedViews.has(view)) reloadActiveView();
@@ -137,6 +146,7 @@ function showView(view) {
 async function reloadActiveView() {
   loadedViews.add(activeView);
   if (activeView === 'meals') await loadTimeline();
+  else if (activeView === 'favorites') await loadFavorites();
   else await loadIngredients();
 }
 
@@ -444,6 +454,55 @@ async function signedUrlsFor(paths) {
   return new Map(paths.map((path) => [path, signedUrlCache.get(path)?.url]));
 }
 
+// ---------- お気に入り ----------
+
+// 一度に読む量。写真の通信を増やしすぎないよう、少しずつ足していく
+const FAVORITE_PAGE = 12;
+let favoriteCount = 0;
+
+favoriteMore.addEventListener('click', () => loadFavorites(true));
+
+async function loadFavorites(more = false) {
+  if (!more) {
+    favoriteCount = 0;
+    favoriteList.replaceChildren();
+  }
+  favoriteMore.hidden = true;
+  favoriteStatus.textContent = '読み込み中…';
+  favoriteEmpty.hidden = false;
+
+  // 期限が切れていればここでトークンが更新される
+  await supabase.auth.getSession();
+
+  const { data: meals, error } = await supabase
+    .from('meals')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .eq('favorite', true)
+    .order('eaten_at', { ascending: false })
+    .range(favoriteCount, favoriteCount + FAVORITE_PAGE - 1);
+
+  if (error) {
+    console.error(error);
+    favoriteStatus.textContent = '読み込めませんでした。';
+    return;
+  }
+
+  if (meals.length === 0 && favoriteCount === 0) {
+    favoriteStatus.textContent = 'まだ★を付けた記録はありません。';
+    return;
+  }
+
+  const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path).filter(Boolean));
+  await loadReactions(meals.map((meal) => meal.id));
+  favoriteList.append(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
+
+  favoriteCount += meals.length;
+  favoriteEmpty.hidden = true;
+  // ちょうど読み切ったときも、次があるか分からないのでボタンは出しておく
+  favoriteMore.hidden = meals.length < FAVORITE_PAGE;
+}
+
 // ---------- いいね / レシピが知りたい ----------
 
 let reactions = new Map(); // meal_id -> [{ user_id, kind }]
@@ -646,6 +705,15 @@ async function toggleFavorite(meal, button) {
     if (data.length === 0) throw new Error('ログインの有効期限が切れているかもしれません。');
     meal.favorite = on;
     setReactionState(button, on);
+    // お気に入りの画面で外したら、その場から消す
+    if (!on && activeView === 'favorites') {
+      button.closest('.card')?.remove();
+      favoriteCount = Math.max(0, favoriteCount - 1);
+      if (favoriteList.childElementCount === 0) {
+        favoriteStatus.textContent = 'まだ★を付けた記録はありません。';
+        favoriteEmpty.hidden = false;
+      }
+    }
   } catch (error) {
     console.error(error);
     alert(`うまくいきませんでした：${error.message ?? error}`);
