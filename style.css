@@ -647,9 +647,18 @@ legend {
 
 /* 外食したお店。メモより控えめにして、日時の続きに見えるようにする */
 .place-text {
+  display: flex;
+  align-items: center;
+  gap: 3px;
   margin: 4px 0 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.pin-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
 }
 
 .note-text {

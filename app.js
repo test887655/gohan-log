@@ -574,7 +574,13 @@ function renderMeal(meal, photoUrl) {
   if (meal.place) {
     const place = document.createElement('p');
     place.className = 'place-text';
-    place.textContent = `@ ${meal.place}`;
+    const pin = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    pin.setAttribute('aria-hidden', 'true');
+    pin.classList.add('pin-icon');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#pin');
+    pin.append(use);
+    place.append(pin, document.createTextNode(meal.place));
     card.append(place);
   }
 
