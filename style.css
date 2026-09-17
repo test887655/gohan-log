@@ -674,11 +674,11 @@ legend {
 
 .card.no-photo .meta { margin-top: 0; }
 
-/* ★を付けた記録の画面へ行くボタン。週の並びの右下に小さく置く */
+/* アルバム・お店・お気に入りへ行くボタン。週の並びの下に小さく置く */
 .favorite-bar {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
   margin: 10px 0 4px;
 }
