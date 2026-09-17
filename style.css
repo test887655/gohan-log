@@ -959,16 +959,17 @@ button.place-main { cursor: pointer; }
   min-width: 0;
 }
 
+/* スタンプとゴミ箱は1行に収める。狭い画面ではスタンプのほうが縮む */
 .stamps {
   display: flex;
-  flex-wrap: wrap;
   gap: 6px;
 }
 
 .stamp {
-  width: 42px;
+  flex: 1;
+  min-width: 0;
+  max-width: 46px;
   height: 38px;
-  flex: none;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-input);
@@ -979,6 +980,9 @@ button.place-main { cursor: pointer; }
 }
 
 .stamp:disabled { opacity: 0.4; }
+
+/* ゴミ箱はスタンプの並びの右端に置く。押し間違えないよう間を空ける */
+.stamps .trash-button { margin-left: auto; }
 
 /* 「もっと見る」は幅いっぱいに置いて、押しやすくする */
 .block-link {

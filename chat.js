@@ -225,8 +225,34 @@ function renderReply(chat) {
     sendMessage(chat.id, { body }, send);
   });
 
+  // 自分が始めたそうだんは、まとめて消せる。返事も一緒に消える
+  if (chat.user_id === me) {
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'trash-button';
+    remove.setAttribute('aria-label', 'このそうだんを消す');
+    remove.innerHTML = '<svg class="trash-icon" aria-hidden="true"><use href="#trash"/></svg>';
+    remove.addEventListener('click', () => deleteChat(chat));
+    stamps.append(remove);
+  }
+
   form.append(row, stamps);
   return form;
+}
+
+async function deleteChat(chat) {
+  const label = chat.topic ? `「${chat.topic}」のそうだん` : 'このそうだん';
+  if (!confirm(`${label}を消しますか？ 返事も一緒に消えます。`)) return;
+
+  // RLSに止められたときはエラーではなく0件が返る。件数で成否を見る
+  const { data, error } = await supabase.from('chats').delete().eq('id', chat.id).select();
+
+  if (error || data.length === 0) {
+    console.error(error);
+    alert('消せませんでした。もう一度開き直してから試してください。');
+    return;
+  }
+  await loadChats(me, names);
 }
 
 // 返事とスタンプの共通処理。二度押しにならないよう、送るあいだは止めておく
