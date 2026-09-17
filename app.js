@@ -157,9 +157,8 @@ $('place-open').addEventListener('click', () => showView('places'));
 $('back-to-meals-places').addEventListener('click', () => showView('meals'));
 
 // そうだん。食材リストの吹き出しから開く。
-// 戻り先は2つ。冷蔵庫で食材リストへ、お茶碗でごはんの画面へ一度に戻れる
+// 食材リストへはヘッダーの冷蔵庫で戻れるので、お茶碗（ごはんへ）だけ置く
 $('chat-open').addEventListener('click', () => showView('chat'));
-$('back-to-ingredients').addEventListener('click', () => showView('ingredients'));
 $('back-to-meals-chat').addEventListener('click', () => showView('meals'));
 
 // 食材の行の吹き出しを押したとき。その食材のことを聞く形で開く
