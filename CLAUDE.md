@@ -12,14 +12,14 @@
 - 開発環境：Windows/PC + Claude Code
 - ホスティング：GitHub Pages
 - データ保存：Supabase（無料枠）。Auth・Database・Storage を使う
-- ユーザーは eri・hana ＋もう1人の3アカウント。新規登録は受け付けない（Supabase側でサインアップを無効化）。
+- ユーザーは eri・hana・minami の3アカウント。新規登録は受け付けない（Supabase側でサインアップを無効化）。
   アカウントはダッシュボードの Authentication → Users から手で足す
 - 写真はSupabase Storageに保存。アップロード前にクライアント側で縮小（長辺1200px程度）して容量を抑える
 - 技術スタックはシンプルに。ビルド不要か最小限（例：素のHTML/JS、またはVite + 軽量フレームワーク）。GitHub Pagesで動くこと
 
 ## 共有ルール（重要）
-共有は「相手どうし（partners）」の組で決まる。eri は hana ともう1人の2人と組み、
-hana ともう1人は組まない（お互いに見えない）。
+共有は「相手どうし（partners）」の組で決まる。eri は hana と minami の2人と組み、
+hana と minami は組まない（お互いに見えない）。
 - 自分の投稿は、組んでいる相手みんなに見える（eri の投稿は2人とも見える）
 - 相手が2人いる eri だけ、ヘッダーの「共有する相手」で切り替える。
   変わるのは eri の画面にどちらの相手のぶんを出すかと、そうだんの宛先。
@@ -209,7 +209,7 @@ SupabaseのRow Level Securityで実装する：
 - 済：ポイントとプレゼント
 - 済：★お気に入り・アルバム・「おいしそう」・外食の記録（お店）
 - 済：そうだん（食材から相手に聞く・スタンプ・赤い丸のお知らせ）
-- 済：3人目のアカウントに向けた共有の組（partners）と、eri の相手切り替え
+- 済：3人目（minami）の追加。共有の組（partners）と、eri の相手切り替え
 - 次：ステップ4（レシピ帳）。ただし手入力前提ではなく、ネットのレシピのURLを
   貼って取り込む形にしたいという希望あり（保留中）
 
@@ -217,7 +217,7 @@ SupabaseのRow Level Securityで実装する：
 - 公開URL：https://test887655.github.io/gohan-log/
 - リポジトリ：test887655/gohan-log（公開。無料プランではPages利用に公開が必須のため）
 - Supabaseプロジェクト：atvrunfaltnkbwhtpoue
-- アカウント：eri / hana ＋もう1人。新規登録・メール確認は無効化済み
+- アカウント：eri / hana / minami。新規登録・メール確認は無効化済み
 - ローカル確認：`python -m http.server 5173`（Node.jsは未インストール）
 
 ### 決まったこと・注意点
