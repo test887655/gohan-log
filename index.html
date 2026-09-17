@@ -214,8 +214,11 @@
 
     <label>
       お店の名前
-      <input type="text" id="place" maxlength="40" placeholder="任意（外食のとき）">
+      <input type="text" id="place" maxlength="40" placeholder="任意（外食のとき）"
+             list="place-options">
     </label>
+    <!-- 登録したお店から選べる。打ち直さなくていいように -->
+    <datalist id="place-options"></datalist>
 
     <label>
       ひとことメモ
@@ -241,6 +244,10 @@
     <button type="button" id="album-open" class="favorite-open">
       <svg class="star-icon" aria-hidden="true"><use href="#photo-icon"/></svg>
       アルバム
+    </button>
+    <button type="button" id="place-open" class="favorite-open">
+      <svg class="star-icon" aria-hidden="true"><use href="#pin"/></svg>
+      お店
     </button>
     <button type="button" id="favorite-open" class="favorite-open">
       <svg class="star-icon" aria-hidden="true"><use href="#star"/></svg>
@@ -377,6 +384,46 @@
     </div>
     <div id="album-grid" class="album-grid"></div>
     <button type="button" id="album-more" class="link block-link" hidden>もっと見る</button>
+  </section>
+
+  <!-- 外食したお店。2人で共有して見られる -->
+  <section id="view-places" hidden>
+    <div class="view-head">
+      <h2>お店</h2>
+      <button type="button" id="back-to-meals-places" class="icon-button round"
+              aria-label="ごはんに戻る" title="ごはんに戻る">
+        <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
+      </button>
+    </div>
+
+    <button id="open-place-button" class="primary block">＋ お店を追加</button>
+
+    <form id="place-form" hidden>
+      <h2 id="place-form-title">お店を追加</h2>
+
+      <label>
+        お店の名前
+        <input type="text" id="place-name" maxlength="40" required>
+      </label>
+
+      <label>
+        メモ（任意）
+        <textarea id="place-note" maxlength="200" rows="3"
+                  placeholder="また行きたい、餃子がおいしい など"></textarea>
+      </label>
+
+      <div class="row">
+        <button type="submit" id="place-save" class="primary">保存</button>
+        <button type="button" id="place-cancel" class="link">キャンセル</button>
+      </div>
+      <p id="place-error" class="error" hidden></p>
+    </form>
+
+    <div id="place-empty" class="empty">
+      <svg class="flower flower-empty" aria-hidden="true"><use href="#flower"/></svg>
+      <p id="place-status" class="hint">読み込み中…</p>
+    </div>
+    <section id="place-list"></section>
   </section>
 
   <!-- 朝・昼・夜に1回ずつ、画面のどこかに出る -->

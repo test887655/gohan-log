@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
+import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadPoints, clearPoints, setHomeScreen, checkMealBonus } from './points.js';
 
 const BUCKET = 'meal-photos';
@@ -147,6 +148,10 @@ $('back-to-meals-favorites').addEventListener('click', () => showView('meals'));
 $('album-open').addEventListener('click', () => showView('album'));
 $('back-to-meals-album').addEventListener('click', () => showView('meals'));
 
+// 外食したお店。2人で共有して見られる
+$('place-open').addEventListener('click', () => showView('places'));
+$('back-to-meals-places').addEventListener('click', () => showView('meals'));
+
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
@@ -156,6 +161,7 @@ function showView(view) {
   $('view-ingredients').hidden = view !== 'ingredients';
   $('view-favorites').hidden = view !== 'favorites';
   $('view-album').hidden = view !== 'album';
+  $('view-places').hidden = view !== 'places';
 
   // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない
   if (currentUser && !loadedViews.has(view)) reloadActiveView();
@@ -166,6 +172,7 @@ async function reloadActiveView() {
   if (activeView === 'meals') await loadTimeline();
   else if (activeView === 'favorites') await loadFavorites();
   else if (activeView === 'album') await loadAlbum();
+  else if (activeView === 'places') await loadPlaces(currentUser.id, displayNames);
   else await loadIngredients();
 }
 
@@ -255,6 +262,7 @@ async function handleSession(session) {
     passwordInput.value = '';
     timeline.replaceChildren();
     clearIngredients();
+    clearPlaces();
     clearPoints();
     loadedViews.clear();
     return;
@@ -285,6 +293,8 @@ $('cancel-button').addEventListener('click', closeForm);
 function openForm(meal) {
   editingMeal = meal;
   mealForm.reset();
+  // 登録したお店から選べるようにする。名前だけなので通信はごく軽い
+  loadPlaceOptions();
   formError.hidden = true;
   photoPreview.hidden = true;
   photoHint.hidden = true;
