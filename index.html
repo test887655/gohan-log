@@ -86,6 +86,35 @@
     <path d="M4.4 17.6l4.4-4.6 3 3 3.4-3.8 4.4 5.4z" fill="#8fae86"/>
   </symbol>
 
+  <!-- 冷蔵庫。食材リストを開くボタンと、そうだんから戻るボタンの2か所で使う。
+       色はCSSではなくここに直接書く（CSSだけ古く届くと真っ黒になってしまうため） -->
+  <symbol id="fridge" viewBox="0 0 24 24">
+      <!-- 本体。上が冷凍室、下が冷蔵室 -->
+      <rect x="5.4" y="1.8" width="13.2" height="20.4" rx="1.8" fill="#eaf0f4"/>
+      <path d="M5.4 9.6h13.2v10.8a1.8 1.8 0 01-1.8 1.8H7.2a1.8 1.8 0 01-1.8-1.8z" fill="#dbe3ea"/>
+      <!-- 仕切り -->
+      <rect x="5.4" y="8.8" width="13.2" height=".8" fill="#a9b6c1"/>
+      <!-- 取っ手。冷蔵庫だと分かる決め手なので、濃いめに描く -->
+      <g fill="#6f7c88">
+        <rect x="15" y="4.3" width="1.2" height="3.2" rx=".6"/>
+        <rect x="15" y="11.2" width="1.2" height="4.6" rx=".6"/>
+      </g>
+      <!-- 外枠 -->
+      <rect x="5.4" y="1.8" width="13.2" height="20.4" rx="1.8"
+            fill="none" stroke="#8d9aa6" stroke-width="1"/>
+  </symbol>
+
+  <!-- 吹き出し。相手に聞くボタンと、お知らせの印に使う -->
+  <symbol id="bubble" viewBox="0 0 24 24">
+    <path d="M4.4 3.8h15.2a2 2 0 012 2v8.8a2 2 0 01-2 2h-9.3l-4.6 3.4.5-3.4h-1.8a2 2 0 01-2-2V5.8a2 2 0 012-2z"
+          fill="#8fc4d4" stroke="#54909f" stroke-width="1" stroke-linejoin="round"/>
+    <g fill="#fdfdfb">
+      <circle cx="8.4" cy="10.2" r="1.15"/>
+      <circle cx="12" cy="10.2" r="1.15"/>
+      <circle cx="15.6" cy="10.2" r="1.15"/>
+    </g>
+  </symbol>
+
   <!-- 地図のピン。外食したお店の名前の頭に付ける。
        ほかの絵と同じで、色はSVGに直接書く（CSSが古いままでも真っ黒にならないように） -->
   <symbol id="pin" viewBox="0 0 24 24">
@@ -157,21 +186,8 @@
   <div class="toolbar">
     <button type="button" id="ingredient-toggle" class="icon-button round" aria-pressed="false"
             aria-label="食材リスト" title="食材リスト">
-      <svg class="fridge-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <!-- 本体。上が冷凍室、下が冷蔵室 -->
-        <rect x="5.4" y="1.8" width="13.2" height="20.4" rx="1.8" fill="#eaf0f4"/>
-        <path d="M5.4 9.6h13.2v10.8a1.8 1.8 0 01-1.8 1.8H7.2a1.8 1.8 0 01-1.8-1.8z" fill="#dbe3ea"/>
-        <!-- 仕切り -->
-        <rect x="5.4" y="8.8" width="13.2" height=".8" fill="#a9b6c1"/>
-        <!-- 取っ手。冷蔵庫だと分かる決め手なので、濃いめに描く -->
-        <g fill="#6f7c88">
-          <rect x="15" y="4.3" width="1.2" height="3.2" rx=".6"/>
-          <rect x="15" y="11.2" width="1.2" height="4.6" rx=".6"/>
-        </g>
-        <!-- 外枠 -->
-        <rect x="5.4" y="1.8" width="13.2" height="20.4" rx="1.8"
-              fill="none" stroke="#8d9aa6" stroke-width="1"/>
-      </svg>
+      <svg class="fridge-icon" aria-hidden="true"><use href="#fridge"/></svg>
+      <span id="fridge-dot" class="dot" hidden></span>
     </button>
 
     <div class="theme-picker" role="group" aria-label="見た目を選ぶ">
@@ -265,10 +281,17 @@
   <section id="view-ingredients" hidden>
     <div class="view-head">
       <h2>食材リスト</h2>
-      <button type="button" id="back-to-meals" class="icon-button round"
-              aria-label="ごはんに戻る" title="ごはんに戻る">
-        <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
-      </button>
+      <div class="head-buttons">
+        <button type="button" id="chat-open" class="icon-button round"
+                aria-label="そうだん" title="そうだん">
+          <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
+          <span id="chat-dot" class="dot" hidden></span>
+        </button>
+        <button type="button" id="back-to-meals" class="icon-button round"
+                aria-label="ごはんに戻る" title="ごはんに戻る">
+          <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
+        </button>
+      </div>
     </div>
 
     <button id="open-ingredient-button" class="primary block">＋ 食材を追加</button>
@@ -424,6 +447,42 @@
       <p id="place-status" class="hint">読み込み中…</p>
     </div>
     <section id="place-list"></section>
+  </section>
+
+  <!-- そうだん。食材から「これ何作る？」と聞ける。やりとりは2人で共有 -->
+  <section id="view-chat" hidden>
+    <div class="view-head">
+      <h2>そうだん</h2>
+      <button type="button" id="back-to-ingredients" class="icon-button round"
+              aria-label="食材リストに戻る" title="食材リストに戻る">
+        <svg class="fridge-icon" aria-hidden="true"><use href="#fridge"/></svg>
+      </button>
+    </div>
+
+    <button id="chat-ask-button" class="primary block">＋ 聞きたいことを書く</button>
+
+    <form id="chat-ask-form" hidden>
+      <h3 id="chat-ask-title">聞きたいこと</h3>
+      <!-- 食材から開いたときは、ここに決まった一言が出る -->
+      <p id="chat-ask-default" class="chat-default" hidden></p>
+
+      <label>
+        <span id="chat-ask-label">聞きたいこと</span>
+        <textarea id="chat-ask-note" maxlength="200" rows="2"></textarea>
+      </label>
+
+      <div class="row">
+        <button type="submit" id="chat-ask-save" class="primary">送る</button>
+        <button type="button" id="chat-ask-cancel" class="link">キャンセル</button>
+      </div>
+      <p id="chat-ask-error" class="error" hidden></p>
+    </form>
+
+    <div id="chat-empty" class="empty">
+      <svg class="flower flower-empty" aria-hidden="true"><use href="#flower"/></svg>
+      <p id="chat-status" class="hint">読み込み中…</p>
+    </div>
+    <div id="chat-list"></div>
   </section>
 
   <!-- 朝・昼・夜に1回ずつ、画面のどこかに出る -->

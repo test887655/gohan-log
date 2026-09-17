@@ -125,6 +125,17 @@ function renderIngredient(item) {
   main.append(line, meta);
   row.append(main);
 
+  // 吹き出しを押すと、この食材のことを相手に聞ける（そうだんの画面が開く）
+  const ask = document.createElement('button');
+  ask.type = 'button';
+  ask.className = 'ask-button';
+  ask.setAttribute('aria-label', `${item.name}のことを聞く`);
+  ask.innerHTML = '<svg class="ask-icon" aria-hidden="true"><use href="#bubble"/></svg>';
+  ask.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('ask-ingredient', { detail: item.name }));
+  });
+  row.append(ask);
+
   // 数や「1/4」で書かれているものは、フォームを開かずにその場で増減できる
   const fraction = fractionOf(item);
   if (countOf(item) !== null || fraction) {

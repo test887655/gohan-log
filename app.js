@@ -2,6 +2,7 @@ import { supabase } from './supabase.js';
 import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
 import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
+import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
 import { loadPoints, clearPoints, setHomeScreen, checkMealBonus } from './points.js';
 
 const BUCKET = 'meal-photos';
@@ -152,6 +153,16 @@ $('back-to-meals-album').addEventListener('click', () => showView('meals'));
 $('place-open').addEventListener('click', () => showView('places'));
 $('back-to-meals-places').addEventListener('click', () => showView('meals'));
 
+// そうだん。食材リストの吹き出しから開き、冷蔵庫のほうへ戻る
+$('chat-open').addEventListener('click', () => showView('chat'));
+$('back-to-ingredients').addEventListener('click', () => showView('ingredients'));
+
+// 食材の行の吹き出しを押したとき。その食材のことを聞く形で開く
+document.addEventListener('ask-ingredient', (event) => {
+  showView('chat');
+  openAskForm(event.detail);
+});
+
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
@@ -162,9 +173,12 @@ function showView(view) {
   $('view-favorites').hidden = view !== 'favorites';
   $('view-album').hidden = view !== 'album';
   $('view-places').hidden = view !== 'places';
+  $('view-chat').hidden = view !== 'chat';
 
-  // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない
-  if (currentUser && !loadedViews.has(view)) reloadActiveView();
+  // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない。
+  // ただし、そうだんだけは開くたびに読み直す。
+  // 新しい返事に気づけないと意味がないうえ、文字だけなので軽い
+  if (currentUser && (view === 'chat' || !loadedViews.has(view))) reloadActiveView();
 }
 
 async function reloadActiveView() {
@@ -173,6 +187,7 @@ async function reloadActiveView() {
   else if (activeView === 'favorites') await loadFavorites();
   else if (activeView === 'album') await loadAlbum();
   else if (activeView === 'places') await loadPlaces(currentUser.id, displayNames);
+  else if (activeView === 'chat') await loadChats(currentUser.id, displayNames);
   else await loadIngredients();
 }
 
@@ -263,6 +278,7 @@ async function handleSession(session) {
     timeline.replaceChildren();
     clearIngredients();
     clearPlaces();
+    clearChats();
     clearPoints();
     loadedViews.clear();
     return;
@@ -280,6 +296,8 @@ async function handleSession(session) {
   $('greeting').textContent = `${myName} さんとして記録中`;
 
   await loadPoints(currentUser, displayNames);
+  // 相手からの新しい書き込みがあれば、冷蔵庫に小さな丸を出す
+  await refreshChatDot(currentUser.id);
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();

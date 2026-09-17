@@ -417,6 +417,8 @@ legend {
 }
 
 .icon-button {
+  /* お知らせの丸を右上に重ねるので、位置の基準にする */
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -430,6 +432,25 @@ legend {
   background: var(--card);
   color: var(--muted);
   cursor: pointer;
+}
+
+/* 相手からの新しい書き込みを知らせる小さな丸。アイコンの右上に重ねる */
+.dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--card);
+  border-radius: 999px;
+  background: var(--error);
+}
+
+/* 見出しの右に、ボタンを2つ並べるとき */
+.head-buttons {
+  display: flex;
+  flex: none;
+  gap: 8px;
 }
 
 /* 食材リストを開いているあいだは色をつけて、今どちらを見ているか分かるようにする */
@@ -807,6 +828,157 @@ button.place-main { cursor: pointer; }
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* ---------- そうだん ---------- */
+
+/* 吹き出しは横に広い絵なので、冷蔵庫より少し小さめでちょうどよく見える */
+.bubble-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* 食材の行から、その食材のことを聞くボタン。ゴミ箱と同じ大きさにそろえる */
+.ask-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 38px;
+  flex: none;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.ask-icon {
+  width: 22px;
+  height: 22px;
+}
+
+#chat-ask-form {
+  margin-bottom: 32px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+#chat-ask-form h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+/* 食材から聞くときの決まり文句。送られる形のまま見せる */
+.chat-default {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-card);
+  background: var(--accent-tint);
+  font-size: 0.95rem;
+}
+
+/* ひとつのそうだんを1枚のカードにまとめる */
+.chat {
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+.chat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.chat-topic {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.chat-when {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* 自分の書き込みは右、相手のは左に寄せる */
+.bubble {
+  max-width: 85%;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-card);
+  background: var(--field-bg);
+  border: 1px solid var(--border);
+}
+
+.bubble.mine {
+  margin-left: auto;
+  border-color: var(--accent-tint);
+  background: var(--accent-tint);
+}
+
+.bubble-who {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.bubble-body {
+  margin: 2px 0 0;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* スタンプは絵文字なので、少し大きめに出す */
+.bubble-stamp {
+  margin: 2px 0 0;
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+
+.chat-reply {
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chat-reply-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-reply-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stamp {
+  width: 42px;
+  height: 38px;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--field-bg);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stamp:disabled { opacity: 0.4; }
 
 /* 「もっと見る」は幅いっぱいに置いて、押しやすくする */
 .block-link {
