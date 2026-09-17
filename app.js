@@ -71,6 +71,10 @@ const favoriteList = $('favorite-list');
 const favoriteStatus = $('favorite-status');
 const favoriteEmpty = $('favorite-empty');
 const favoriteMore = $('favorite-more');
+const albumGrid = $('album-grid');
+const albumStatus = $('album-status');
+const albumEmpty = $('album-empty');
+const albumMore = $('album-more');
 const weekRange = $('week-range');
 const prevWeekButton = $('prev-week');
 const nextWeekButton = $('next-week');
@@ -139,6 +143,10 @@ $('back-to-meals').addEventListener('click', () => showView('meals'));
 $('favorite-open').addEventListener('click', () => showView('favorites'));
 $('back-to-meals-favorites').addEventListener('click', () => showView('meals'));
 
+// 写真だけを並べるアルバム
+$('album-open').addEventListener('click', () => showView('album'));
+$('back-to-meals-album').addEventListener('click', () => showView('meals'));
+
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
@@ -147,6 +155,7 @@ function showView(view) {
   $('view-meals').hidden = view !== 'meals';
   $('view-ingredients').hidden = view !== 'ingredients';
   $('view-favorites').hidden = view !== 'favorites';
+  $('view-album').hidden = view !== 'album';
 
   // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない
   if (currentUser && !loadedViews.has(view)) reloadActiveView();
@@ -156,6 +165,7 @@ async function reloadActiveView() {
   loadedViews.add(activeView);
   if (activeView === 'meals') await loadTimeline();
   else if (activeView === 'favorites') await loadFavorites();
+  else if (activeView === 'album') await loadAlbum();
   else await loadIngredients();
 }
 
@@ -461,6 +471,75 @@ async function signedUrlsFor(paths) {
   }
 
   return new Map(paths.map((path) => [path, signedUrlCache.get(path)?.url]));
+}
+
+// ---------- アルバム ----------
+
+// 写真は1枚ずつ通信するので、一度に並べる数は控えめにする
+const ALBUM_PAGE = 18;
+let albumCount = 0;
+
+albumMore.addEventListener('click', () => loadAlbum(true));
+
+async function loadAlbum(more = false) {
+  if (!more) {
+    albumCount = 0;
+    albumGrid.replaceChildren();
+  }
+  albumMore.hidden = true;
+  albumStatus.textContent = '読み込み中…';
+  albumEmpty.hidden = false;
+
+  // 期限が切れていればここでトークンが更新される
+  await supabase.auth.getSession();
+
+  // 写真のある記録だけ。2人ぶんが新しい順に並ぶ
+  const { data: meals, error } = await supabase
+    .from('meals')
+    .select('id, user_id, photo_path, note, eaten_at')
+    .not('photo_path', 'is', null)
+    .order('eaten_at', { ascending: false })
+    .range(albumCount, albumCount + ALBUM_PAGE - 1);
+
+  if (error) {
+    console.error(error);
+    albumStatus.textContent = '読み込めませんでした。';
+    return;
+  }
+
+  if (meals.length === 0 && albumCount === 0) {
+    albumStatus.textContent = 'まだ写真つきの記録はありません。';
+    return;
+  }
+
+  const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path));
+  albumGrid.append(...meals.map((meal) => renderTile(meal, urls.get(meal.photo_path))));
+
+  albumCount += meals.length;
+  albumEmpty.hidden = true;
+  albumMore.hidden = meals.length < ALBUM_PAGE;
+}
+
+function renderTile(meal, photoUrl) {
+  const when = new Date(meal.eaten_at);
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'album-tile';
+  tile.title = `${displayNames.get(meal.user_id) ?? '不明'}・${dateFormatter.format(when)}`;
+
+  const image = document.createElement('img');
+  image.loading = 'lazy';
+  image.alt = meal.note || tile.title;
+  if (photoUrl) image.src = photoUrl;
+  tile.append(image);
+
+  // 押すと、その日の週のタイムラインへ移る
+  tile.addEventListener('click', () => {
+    weekStart = startOfWeek(when);
+    showView('meals');
+    loadTimeline();
+  });
+  return tile;
 }
 
 // ---------- お気に入り ----------

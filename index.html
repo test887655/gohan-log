@@ -79,6 +79,13 @@
       <path d="M10 18.4h4l.9 2.2H9.1z" fill="#5c7d94"/>
   </symbol>
 
+  <!-- 写真。アルバムのボタンに使う。ほかの絵と同じで色はSVGに直接書く -->
+  <symbol id="photo" viewBox="0 0 24 24">
+    <rect x="3" y="5" width="18" height="14" rx="2.2" fill="#f0ece4" stroke="#b9ae9c" stroke-width="1"/>
+    <circle cx="8.6" cy="9.8" r="1.5" fill="#e8b34a"/>
+    <path d="M4.4 17.6l4.4-4.6 3 3 3.4-3.8 4.4 5.4z" fill="#8fae86"/>
+  </symbol>
+
   <!-- 地図のピン。外食したお店の名前の頭に付ける。
        ほかの絵と同じで、色はSVGに直接書く（CSSが古いままでも真っ黒にならないように） -->
   <symbol id="pin" viewBox="0 0 24 24">
@@ -231,6 +238,10 @@
 
   <!-- ★を付けた記録だけを集めた画面へ -->
   <div class="favorite-bar">
+    <button type="button" id="album-open" class="favorite-open">
+      <svg class="star-icon" aria-hidden="true"><use href="#photo"/></svg>
+      アルバム
+    </button>
     <button type="button" id="favorite-open" class="favorite-open">
       <svg class="star-icon" aria-hidden="true"><use href="#star"/></svg>
       お気に入り
@@ -348,6 +359,24 @@
     </div>
     <section id="favorite-list"></section>
     <button type="button" id="favorite-more" class="link block-link" hidden>もっと見る</button>
+  </section>
+
+  <!-- 写真だけをタイルで並べる画面。2人ぶんが新しい順に並ぶ -->
+  <section id="view-album" hidden>
+    <div class="view-head">
+      <h2>アルバム</h2>
+      <button type="button" id="back-to-meals-album" class="icon-button round"
+              aria-label="ごはんに戻る" title="ごはんに戻る">
+        <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
+      </button>
+    </div>
+
+    <div id="album-empty" class="empty">
+      <svg class="flower flower-empty" aria-hidden="true"><use href="#flower"/></svg>
+      <p id="album-status" class="hint">読み込み中…</p>
+    </div>
+    <div id="album-grid" class="album-grid"></div>
+    <button type="button" id="album-more" class="link block-link" hidden>もっと見る</button>
   </section>
 
   <!-- 朝・昼・夜に1回ずつ、画面のどこかに出る -->
