@@ -20,17 +20,22 @@ const options = $('place-options');
 let editing = null;
 let me = null;
 let names = new Map(); // user_id -> 表示名
-let optionsLoaded = false;
+// 自分と、いま共有している相手。この2人ぶんのお店だけを出す
+let shared = [];
+// 候補をどの組み合わせで読んだか。相手を切り替えたら読み直す
+let optionsKey = null;
 
 // ---------- 読み込み ----------
 
-export async function loadPlaces(userId, displayNames) {
+export async function loadPlaces(userId, displayNames, sharedIds) {
   me = userId;
   names = displayNames;
+  shared = sharedIds;
 
   const { data, error } = await supabase
     .from('places')
     .select('*')
+    .in('user_id', shared)
     .order('name', { ascending: true });
 
   if (error) {
@@ -41,7 +46,7 @@ export async function loadPlaces(userId, displayNames) {
   }
 
   list.replaceChildren(...data.map(renderPlace));
-  fillOptions(data);
+  fillOptions(data, shared.join());
 
   if (data.length === 0) showStatus('まだお店がありません。上の「＋ お店を追加」から登録できます。');
   else listEmpty.hidden = true;
@@ -49,22 +54,24 @@ export async function loadPlaces(userId, displayNames) {
 
 // 食事の記録フォームを開いたときに呼ぶ。名前だけなので通信はごく軽い。
 // 一度読んだら覚えておき、開くたびには読みに行かない
-export async function loadPlaceOptions() {
-  if (optionsLoaded) return;
+export async function loadPlaceOptions(sharedIds) {
+  const key = sharedIds.join();
+  if (optionsKey === key) return;
 
   const { data, error } = await supabase
     .from('places')
     .select('name')
+    .in('user_id', sharedIds)
     .order('name', { ascending: true });
 
   if (error) {
     console.error(error);
     return;
   }
-  fillOptions(data);
+  fillOptions(data, key);
 }
 
-function fillOptions(rows) {
+function fillOptions(rows, key) {
   // 2人が同じお店を書いていることもあるので、名前は重ならないようにする
   const unique = [...new Set(rows.map((row) => row.name))];
   options.replaceChildren(...unique.map((name) => {
@@ -72,13 +79,13 @@ function fillOptions(rows) {
     option.value = name;
     return option;
   }));
-  optionsLoaded = true;
+  optionsKey = key;
 }
 
 export function clearPlaces() {
   list.replaceChildren();
   options.replaceChildren();
-  optionsLoaded = false;
+  optionsKey = null;
   closeForm();
 }
 
@@ -188,7 +195,7 @@ form.addEventListener('submit', async (event) => {
     }
 
     closeForm();
-    await loadPlaces(me, names);
+    await loadPlaces(me, names, shared);
   } catch (error) {
     console.error(error);
     formError.textContent = `保存できませんでした：${error.message ?? error}`;
@@ -212,5 +219,5 @@ async function deletePlace(place) {
   }
   // 消したものを編集中だったら、開いたままにしない
   if (editing?.id === place.id) closeForm();
-  await loadPlaces(me, names);
+  await loadPlaces(me, names, shared);
 }

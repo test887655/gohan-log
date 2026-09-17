@@ -12,24 +12,37 @@
 - 開発環境：Windows/PC + Claude Code
 - ホスティング：GitHub Pages
 - データ保存：Supabase（無料枠）。Auth・Database・Storage を使う
-- ユーザーは2アカウントのみ。新規登録は受け付けない（Supabase側でサインアップを無効化）
+- ユーザーは eri・hana ＋もう1人の3アカウント。新規登録は受け付けない（Supabase側でサインアップを無効化）。
+  アカウントはダッシュボードの Authentication → Users から手で足す
 - 写真はSupabase Storageに保存。アップロード前にクライアント側で縮小（長辺1200px程度）して容量を抑える
 - 技術スタックはシンプルに。ビルド不要か最小限（例：素のHTML/JS、またはVite + 軽量フレームワーク）。GitHub Pagesで動くこと
 
 ## 共有ルール（重要）
+共有は「相手どうし（partners）」の組で決まる。eri は hana ともう1人の2人と組み、
+hana ともう1人は組まない（お互いに見えない）。
+- 自分の投稿は、組んでいる相手みんなに見える（eri の投稿は2人とも見える）
+- 相手が2人いる eri だけ、ヘッダーの「共有する相手」で切り替える。
+  変わるのは eri の画面にどちらの相手のぶんを出すかと、そうだんの宛先。
+  選んだ相手は端末ごとに localStorage（partner:<自分のid>）へ覚える
+
 | 機能 | 共有 |
 |---|---|
-| 食事ログ | 2人で共有（両方の投稿が同じタイムラインに並ぶ） |
-| お店（外食の記録） | 2人で共有（どちらが書いたか名前で分かる） |
-| そうだん | 2人で共有（やりとりなので当然2人とも見える） |
+| 食事ログ | 組んでいる相手と共有（自分と、選んでいる相手の投稿が同じタイムラインに並ぶ） |
+| お店（外食の記録） | 組んでいる相手と共有（誰が書いたか名前で分かる） |
+| そうだん | 聞いた人と聞かれた人の2人だけ |
 | 食材リスト | 各自のみ |
 | レシピ帳 | 各自のみ |
 | 買い物リスト | 各自のみ |
 
 SupabaseのRow Level Securityで実装する：
-- meals / places / chats / chat_messages：認証済みユーザー全員が閲覧可、
-  作成・削除は本人のみ
-- chat_seen：本人のみ（自分が最後に開いた時刻を持つだけ）
+- 見てよいかは関数 public.can_see(owner) で判定する（本人か、partners に組がある人）。
+  meals / meal_reactions / places / gift_items / profiles / 写真（Storage）の閲覧はこれを使う。
+  作成・編集・削除は本人のみ
+- chats / chat_messages：chats の user_id（聞いた人）か partner_id（聞かれた人）だけ。
+  聞けるのは partners に組がある相手だけ
+- chat_seen：本人のみ（相手ごとに、最後に開いた時刻を持つだけ）
+- partners：自分の行だけ読める。書き換えはダッシュボードのSQLからだけ行う
+- 相手を足すときは、profiles に表示名、partners に両向き2行を入れる
 - ingredients / recipes / shopping_items：本人のみ閲覧・作成・編集・削除
 
 ## 機能
@@ -97,6 +110,7 @@ SupabaseのRow Level Securityで実装する：
   どの日のぶんかは食べた日時から決めるので、あとから日付を戻して記録してもよい
 - ポイントはタイトルの横に出し、プレゼントのマークを押すと交換の画面が開く
 - プレゼントは**贈る側が内容とポイント数を決めて並べ、相手が選ぶ**。
+  自分が用意したものは相手みんなに見える。「もらえるもの」は選んでいる相手のぶんだけ出す
   減るのは選んだ側のポイント。用意した側は減らない
 - 相手が選ぶと、用意した人が次に開いたときにポップで知らせる
 
@@ -111,7 +125,10 @@ SupabaseのRow Level Securityで実装する：
 - スタンプの右のゴミ箱で、そのそうだんをまとめて消せる（返事も一緒に消える）。
   出るのは自分が始めたそうだんだけ。狭い画面でも1行に収まるよう、
   スタンプのほうが縮む作りにしてある
+- 聞く相手は、そのとき選んでいる相手（eri 以外は相手が1人なので迷わない）。
+  一覧も選んでいる相手とのぶんだけ出す
 - 相手からの新しい書き込みがあると、冷蔵庫のアイコンに赤い丸が出る。
+  eri は「共有する相手」のボタンにも、書き込みがあった相手のほうに丸が出る。
   冷蔵庫はどの画面にも出ているので、ごはんの画面からでも気づける。
   そうだんの画面を開くと丸は消える（最後に開いた時刻を覚えておく作り）
 - そうだんの画面だけは開くたびに読み直す。新しい返事に気づけないと意味がないため。
@@ -150,14 +167,18 @@ SupabaseのRow Level Securityで実装する：
 - places (id, user_id, name, note, created_at)
   - 外食したお店。name は40文字まで、note（メモ・感想）は200文字まで。NULL 可
   - 2人とも閲覧可。作成・編集・削除は本人のみ（meals と同じ）
-- chats (id, user_id, topic, created_at)
+- partners (user_id, partner_id)
+  - 共有する組。両向きで2行入れる（eri→hana と hana→eri）。主キーは2列の組
+- chats (id, user_id, partner_id, topic, created_at)
+  - partner_id は聞かれた人
   - ひとつの相談のまとまり。topic は食材名（30文字まで）。
     「＋」から書いた自由な相談は NULL
 - chat_messages (id, chat_id, user_id, body, stamp, created_at)
   - body は文（200文字まで）、stamp は絵文字。どちらか一方は必ず入る
-- chat_seen (user_id, seen_at)
-  - 赤い丸を出すためだけの表。最後にそうだんを開いた時刻を1人1行で持つ。
-    seen_at より新しい「相手の書き込み」があれば丸を出す
+- chat_seen (user_id, partner_id, seen_at)
+  - 赤い丸を出すためだけの表。最後にそうだんを開いた時刻を、相手ごとに1行で持つ
+    （主キーは user_id と partner_id の組）。
+    seen_at より新しい「その相手の書き込み」があれば丸を出す
 - ingredients (id, user_id, name, quantity, unit, expires_on, storage, created_at)
   - quantity は text（「半分」なども入れられるようにするため。10文字まで）
 - recipes (id, user_id, title, steps, note, created_at)
@@ -188,6 +209,7 @@ SupabaseのRow Level Securityで実装する：
 - 済：ポイントとプレゼント
 - 済：★お気に入り・アルバム・「おいしそう」・外食の記録（お店）
 - 済：そうだん（食材から相手に聞く・スタンプ・赤い丸のお知らせ）
+- 済：3人目のアカウントに向けた共有の組（partners）と、eri の相手切り替え
 - 次：ステップ4（レシピ帳）。ただし手入力前提ではなく、ネットのレシピのURLを
   貼って取り込む形にしたいという希望あり（保留中）
 
@@ -195,7 +217,7 @@ SupabaseのRow Level Securityで実装する：
 - 公開URL：https://test887655.github.io/gohan-log/
 - リポジトリ：test887655/gohan-log（公開。無料プランではPages利用に公開が必須のため）
 - Supabaseプロジェクト：atvrunfaltnkbwhtpoue
-- アカウント：eri / hana の2名。新規登録・メール確認は無効化済み
+- アカウント：eri / hana ＋もう1人。新規登録・メール確認は無効化済み
 - ローカル確認：`python -m http.server 5173`（Node.jsは未インストール）
 
 ### 決まったこと・注意点

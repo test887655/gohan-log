@@ -202,6 +202,30 @@ body {
   color: var(--accent);
 }
 
+/* 共有する相手の切り替え（相手が2人いる人だけに出る） */
+.partner-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.partner-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* 新しいそうだんがある相手に、赤い丸を右上に重ねる */
+.partner-option {
+  position: relative;
+}
+
+.partner-option .dot {
+  top: -3px;
+  right: -3px;
+}
+
 .screen {
   max-width: 420px;
   margin: 0 auto;
@@ -1296,4 +1320,5 @@ button.place-main { cursor: pointer; }
 .news-text {
   margin: 6px 0 18px;
   font-size: 1rem;
+  white-space: pre-line;
 }

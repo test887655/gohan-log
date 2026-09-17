@@ -1,5 +1,5 @@
 // そうだん。食材から「これ何作ろう？」と相手に聞ける。
-// やりとりは2人で共有（RLSで、書けるのは本人・読めるのは2人とも）
+// やりとりは聞いた人と聞かれた人の2人だけが読める（RLSでそうしてある）
 import { supabase } from './supabase.js';
 
 // 返事に使うスタンプ。文字で入れておけば、絵を用意しなくても出る
@@ -26,6 +26,10 @@ const fridgeDot = $('fridge-dot');
 
 let me = null;
 let names = new Map(); // user_id -> 表示名
+// いま選んでいる共有相手。聞くときの宛先で、一覧もこの人とのぶんだけ出す
+let partner = null;
+// 新しい書き込みがある相手
+const unread = new Set();
 // 食材から開いたときの食材名。「＋」から開いたときは null
 let askTopic = null;
 
@@ -40,13 +44,23 @@ function defaultAsk(topic) {
 
 // ---------- 読み込み ----------
 
-export async function loadChats(userId, displayNames) {
+export async function loadChats(userId, displayNames, partnerId) {
   me = userId;
   names = displayNames;
+  partner = partnerId;
 
+  if (!partnerId) {
+    list.replaceChildren();
+    showStatus('そうだんする相手がまだいません。');
+    return;
+  }
+
+  // 相手が2人いる人（eri）は、選んでいる相手とのぶんだけを出す。
+  // 読めるのが自分の関わるそうだんだけなのは RLS で決まっているので、ここでは相手で絞るだけ
   const { data: chats, error } = await supabase
     .from('chats')
     .select('*')
+    .or(`user_id.eq.${partnerId},partner_id.eq.${partnerId}`)
     .order('created_at', { ascending: false })
     .limit(CHAT_PAGE);
 
@@ -87,7 +101,8 @@ export async function loadChats(userId, displayNames) {
 export function clearChats() {
   list.replaceChildren();
   closeAskForm();
-  setDot(false);
+  unread.clear();
+  setDots();
 }
 
 function showStatus(message) {
@@ -97,41 +112,56 @@ function showStatus(message) {
 
 // ---------- お知らせの丸 ----------
 
-// 相手からの新しい書き込みがあれば、冷蔵庫と吹き出しに小さな丸を出す
-export async function refreshChatDot(userId) {
+// 相手からの新しい書き込みがあれば、冷蔵庫と吹き出しに小さな丸を出す。
+// 読んだかどうかは相手ごとに覚える。eri が hana とのそうだんを開いても、
+// もう一人からの返事は「まだ読んでいない」ままになるように
+export async function refreshChatDot(userId, partnerIds) {
   me = userId;
 
-  const { data: seen, error: seenError } = await supabase
-    .from('chat_seen').select('seen_at').eq('user_id', userId).maybeSingle();
+  const { data: seenRows, error: seenError } = await supabase
+    .from('chat_seen').select('partner_id, seen_at').eq('user_id', userId);
   if (seenError) console.error(seenError);
+  const seen = new Map((seenRows ?? []).map((row) => [row.partner_id, row.seen_at]));
 
-  const since = seen?.seen_at ?? '1970-01-01T00:00:00Z';
+  unread.clear();
+  for (const partnerId of partnerIds) {
+    const { count, error } = await supabase
+      .from('chat_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', partnerId)
+      .gt('created_at', seen.get(partnerId) ?? '1970-01-01T00:00:00Z');
 
-  const { count, error } = await supabase
-    .from('chat_messages')
-    .select('id', { count: 'exact', head: true })
-    .neq('user_id', userId)
-    .gt('created_at', since);
+    if (error) console.error(error);
+    else if ((count ?? 0) > 0) unread.add(partnerId);
+  }
+  setDots();
+}
+
+function setDots() {
+  const any = unread.size > 0;
+  chatDot.hidden = !any;
+  fridgeDot.hidden = !any;
+  // 相手の切り替えボタン（eri だけに出る）にも、その相手のぶんだけ丸を付ける
+  for (const button of document.querySelectorAll('.partner-option')) {
+    button.querySelector('.dot').hidden = !unread.has(button.dataset.partner);
+  }
+}
+
+async function markSeen() {
+  if (!partner) return;
+  const { error } = await supabase
+    .from('chat_seen')
+    .upsert(
+      { user_id: me, partner_id: partner, seen_at: new Date().toISOString() },
+      { onConflict: 'user_id,partner_id' },
+    );
 
   if (error) {
     console.error(error);
     return;
   }
-  setDot((count ?? 0) > 0);
-}
-
-function setDot(on) {
-  chatDot.hidden = !on;
-  fridgeDot.hidden = !on;
-}
-
-async function markSeen() {
-  const { error } = await supabase
-    .from('chat_seen')
-    .upsert({ user_id: me, seen_at: new Date().toISOString() }, { onConflict: 'user_id' });
-
-  if (error) console.error(error);
-  else setDot(false);
+  unread.delete(partner);
+  setDots();
 }
 
 // ---------- 一覧の組み立て ----------
@@ -252,7 +282,7 @@ async function deleteChat(chat) {
     alert('消せませんでした。もう一度開き直してから試してください。');
     return;
   }
-  await loadChats(me, names);
+  await loadChats(me, names, partner);
 }
 
 // 返事とスタンプの共通処理。二度押しにならないよう、送るあいだは止めておく
@@ -268,7 +298,7 @@ async function sendMessage(chatId, values, button) {
     alert('送れませんでした。通信を確かめて、もう一度試してください。');
     return;
   }
-  await loadChats(me, names);
+  await loadChats(me, names, partner);
 }
 
 // ---------- 聞く ----------
@@ -282,15 +312,16 @@ export function openAskForm(topic) {
   askError.hidden = true;
   askNote.value = '';
 
+  const to = names.get(partner) ?? '相手';
   if (topic) {
-    askTitle.textContent = `${topic}のこと`;
+    askTitle.textContent = `${to} さんに聞く：${topic}`;
     askDefault.textContent = defaultAsk(topic);
     askDefault.hidden = false;
     askLabel.textContent = '足したいこと（任意）';
     askNote.placeholder = 'あと1玉ある、など';
     askNote.required = false;
   } else {
-    askTitle.textContent = '聞きたいこと';
+    askTitle.textContent = `${to} さんに聞く`;
     askDefault.hidden = true;
     askLabel.textContent = '聞きたいこと';
     askNote.placeholder = '今日の献立どうしよう？ など';
@@ -319,6 +350,12 @@ askForm.addEventListener('submit', async (event) => {
     ? (extra ? `${defaultAsk(askTopic)}\n${extra}` : defaultAsk(askTopic))
     : extra;
 
+  if (!partner) {
+    askError.textContent = '聞く相手が決まっていません。開き直してから試してください。';
+    askError.hidden = false;
+    return;
+  }
+
   if (!body) {
     askError.textContent = '聞きたいことを書いてください。';
     askError.hidden = false;
@@ -330,7 +367,7 @@ askForm.addEventListener('submit', async (event) => {
 
   try {
     const { data, error } = await supabase
-      .from('chats').insert({ topic: askTopic }).select().single();
+      .from('chats').insert({ topic: askTopic, partner_id: partner }).select().single();
     if (error) throw error;
 
     const { error: messageError } = await supabase
@@ -338,7 +375,7 @@ askForm.addEventListener('submit', async (event) => {
     if (messageError) throw messageError;
 
     closeAskForm();
-    await loadChats(me, names);
+    await loadChats(me, names, partner);
   } catch (error) {
     console.error(error);
     askError.textContent = `送れませんでした：${error.message ?? error}`;

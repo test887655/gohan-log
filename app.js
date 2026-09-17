@@ -3,7 +3,7 @@ import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
 import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
-import { loadPoints, clearPoints, setHomeScreen, checkMealBonus } from './points.js';
+import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner } from './points.js';
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
@@ -84,6 +84,9 @@ const thisWeekButton = $('this-week');
 
 let currentUser = null;
 let displayNames = new Map();
+// 共有する相手。hana ともう一人は eri だけ、eri は2人いるので切り替えて使う
+let partnerIds = [];
+let activePartner = null;
 let editingMeal = null;
 // 表示中の週の月曜0時。1週間ぶんだけ読み込むことで、通信量を抑える
 let weekStart = startOfWeek(new Date());
@@ -186,9 +189,80 @@ async function reloadActiveView() {
   if (activeView === 'meals') await loadTimeline();
   else if (activeView === 'favorites') await loadFavorites();
   else if (activeView === 'album') await loadAlbum();
-  else if (activeView === 'places') await loadPlaces(currentUser.id, displayNames);
-  else if (activeView === 'chat') await loadChats(currentUser.id, displayNames);
+  else if (activeView === 'places') await loadPlaces(currentUser.id, displayNames, sharedIds());
+  else if (activeView === 'chat') await loadChats(currentUser.id, displayNames, activePartner);
   else await loadIngredients();
+}
+
+// ---------- 共有する相手 ----------
+
+const partnerPicker = $('partner-picker');
+
+// 自分と、いま選んでいる相手。タイムライン・アルバム・お店はこの2人ぶんだけ読む
+function sharedIds() {
+  return activePartner ? [currentUser.id, activePartner] : [currentUser.id];
+}
+
+async function loadPartners() {
+  const { data, error } = await supabase.from('partners').select('partner_id');
+  if (error) console.error(error);
+  partnerIds = (data ?? []).map((row) => row.partner_id);
+
+  // 前に選んでいた相手を覚えておく。端末ごと・ログインした人ごとに持つ
+  let saved = null;
+  try {
+    saved = localStorage.getItem(`partner:${currentUser.id}`);
+  } catch (error) { /* 使えなくても、最初の相手になるだけ */ }
+  activePartner = partnerIds.includes(saved) ? saved : (partnerIds[0] ?? null);
+
+  renderPartnerPicker();
+}
+
+// 相手が2人以上いるとき（eri）だけ、切り替えボタンを出す
+function renderPartnerPicker() {
+  partnerPicker.replaceChildren();
+  partnerPicker.hidden = partnerIds.length < 2;
+  if (partnerPicker.hidden) return;
+
+  const label = document.createElement('span');
+  label.className = 'partner-label';
+  label.textContent = '共有する相手';
+  partnerPicker.append(label);
+
+  for (const id of partnerIds) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'theme-option partner-option';
+    button.dataset.partner = id;
+    button.setAttribute('aria-pressed', String(id === activePartner));
+    button.textContent = displayNames.get(id) ?? '相手';
+
+    // その相手からの新しい書き込みがあると、ここにも赤い丸が付く
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.hidden = true;
+    button.append(dot);
+
+    button.addEventListener('click', () => setPartner(id));
+    partnerPicker.append(button);
+  }
+}
+
+function setPartner(id) {
+  if (id === activePartner) return;
+  activePartner = id;
+  try {
+    localStorage.setItem(`partner:${currentUser.id}`, id);
+  } catch (error) { /* 保存できなくても、その場の切り替えは効く */ }
+
+  for (const button of partnerPicker.querySelectorAll('.partner-option')) {
+    button.setAttribute('aria-pressed', String(button.dataset.partner === id));
+  }
+  setGiftPartner(id);
+
+  // 相手が変わると中身が変わるので、読んだ画面の記憶を捨てて読み直す
+  loadedViews.clear();
+  reloadActiveView();
 }
 
 // ---------- 見た目の切り替え ----------
@@ -281,6 +355,9 @@ async function handleSession(session) {
     clearChats();
     clearPoints();
     loadedViews.clear();
+    partnerIds = [];
+    activePartner = null;
+    partnerPicker.hidden = true;
     return;
   }
 
@@ -295,9 +372,11 @@ async function handleSession(session) {
   const myName = displayNames.get(currentUser.id) ?? currentUser.email;
   $('greeting').textContent = `${myName} さんとして記録中`;
 
-  await loadPoints(currentUser, displayNames);
+  await loadPartners();
+
+  await loadPoints(currentUser, displayNames, activePartner);
   // 相手からの新しい書き込みがあれば、冷蔵庫に小さな丸を出す
-  await refreshChatDot(currentUser.id);
+  await refreshChatDot(currentUser.id, partnerIds);
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();
@@ -312,7 +391,7 @@ function openForm(meal) {
   editingMeal = meal;
   mealForm.reset();
   // 登録したお店から選べるようにする。名前だけなので通信はごく軽い
-  loadPlaceOptions();
+  loadPlaceOptions(sharedIds());
   formError.hidden = true;
   photoPreview.hidden = true;
   photoHint.hidden = true;
@@ -451,6 +530,7 @@ async function loadTimeline() {
   const { data: meals, error } = await supabase
     .from('meals')
     .select('*')
+    .in('user_id', sharedIds())
     .gte('eaten_at', weekStart.toISOString())
     .lt('eaten_at', weekEnd.toISOString())
     .order('eaten_at', { ascending: false });
@@ -525,6 +605,7 @@ async function loadAlbum(more = false) {
   const { data: meals, error } = await supabase
     .from('meals')
     .select('id, user_id, photo_path, note, eaten_at')
+    .in('user_id', sharedIds())
     .not('photo_path', 'is', null)
     .order('eaten_at', { ascending: false })
     .range(albumCount, albumCount + ALBUM_PAGE - 1);

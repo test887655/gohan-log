@@ -40,6 +40,7 @@ const newsText = $('gift-news-text');
 
 let me = null;
 let partner = null; // { id, name }
+let names = new Map(); // user_id -> 表示名
 let total = 0;
 let pending = null; // まだ取っていないキラキラ { day, slot, bonus }
 let claimedToday = new Set(); // 今日もう受け取った slot
@@ -73,12 +74,10 @@ function isBonusDay(day) {
 
 // ---------- 読み込み ----------
 
-export async function loadPoints(user, displayNames) {
+export async function loadPoints(user, displayNames, partnerId) {
   me = user;
-
-  const other = [...displayNames].find(([id]) => id !== user.id);
-  partner = other ? { id: other[0], name: other[1] } : null;
-  partnerTitle.textContent = partner ? `${partner.name} さんからもらえるもの` : 'もらえるもの';
+  names = displayNames;
+  setGiftPartner(partnerId);
 
   pointButton.hidden = false;
 
@@ -86,6 +85,14 @@ export async function loadPoints(user, displayNames) {
   await refreshSparkle();
   await checkMealBonus();
   await showNews();
+}
+
+// 共有する相手を切り替えたとき（eri だけ）に呼ばれる。
+// 自分が用意したものは相手2人とも見えるので、変わるのは「もらえるもの」の側だけ
+export function setGiftPartner(partnerId) {
+  partner = partnerId ? { id: partnerId, name: names.get(partnerId) ?? '相手' } : null;
+  partnerTitle.textContent = partner ? `${partner.name} さんからもらえるもの` : 'もらえるもの';
+  if (me && !panel.hidden) loadGiftItems();
 }
 
 export function clearPoints() {
@@ -282,7 +289,7 @@ async function loadGiftItems() {
   }
 
   const mine = data.filter((item) => item.user_id === me.id);
-  const theirs = data.filter((item) => item.user_id !== me.id);
+  const theirs = data.filter((item) => item.user_id === partner?.id);
 
   myList.replaceChildren(...mine.map(renderMyGift));
   myEmpty.hidden = mine.length > 0;
@@ -466,10 +473,16 @@ async function showNews() {
   }
 
   unseen = data;
-  const name = partner?.name ?? '相手';
-  newsText.textContent = data.length === 1
-    ? `${name} さんが「${data[0].name}」を選びました`
-    : `${name} さんが ${data.map((row) => `「${row.name}」`).join('')} を選びました`;
+  // 相手が2人いると、選んだ人がそれぞれ違うことがある。人ごとにまとめて書く
+  const byPerson = new Map();
+  for (const row of data) {
+    const name = names.get(row.chosen_by) ?? '相手';
+    if (!byPerson.has(name)) byPerson.set(name, []);
+    byPerson.get(name).push(`「${row.name}」`);
+  }
+  newsText.textContent = [...byPerson]
+    .map(([name, items]) => `${name} さんが ${items.join('')} を選びました`)
+    .join('\n');
   news.hidden = false;
 }
 
