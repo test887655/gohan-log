@@ -36,10 +36,12 @@ hana と minami は組まない（お互いに見えない）。
 
 SupabaseのRow Level Securityで実装する：
 - 見てよいかは関数 public.can_see(owner) で判定する（本人か、partners に組がある人）。
-  meals / meal_reactions / places / gift_items / profiles / 写真（Storage）の閲覧はこれを使う。
+  meals / meal_reactions / places / profiles / 写真（Storage）の閲覧はこれを使う。
   作成・編集・削除は本人のみ
 - chats / chat_messages：chats の user_id（聞いた人）か partner_id（聞かれた人）だけ。
   聞けるのは partners に組がある相手だけ
+- gift_items：用意した人（user_id）と、向けた相手（partner_id）だけが読める。
+  作れるのは partners に組がある相手に向けたものだけ
 - chat_seen：本人のみ（相手ごとに、最後に開いた時刻を持つだけ）
 - partners：自分の行だけ読める。書き換えはダッシュボードのSQLからだけ行う
 - 相手を足すときは、profiles に表示名、partners に両向き2行を入れる
@@ -110,7 +112,9 @@ SupabaseのRow Level Securityで実装する：
   どの日のぶんかは食べた日時から決めるので、あとから日付を戻して記録してもよい
 - ポイントはタイトルの横に出し、プレゼントのマークを押すと交換の画面が開く
 - プレゼントは**贈る側が内容とポイント数を決めて並べ、相手が選ぶ**。
-  自分が用意したものは相手みんなに見える。「もらえるもの」は選んでいる相手のぶんだけ出す
+  プレゼントは相手ごとに別々に用意する（eri は hana 向けと minami 向けを分けて作る）。
+  「用意するもの」「もらえるもの」とも、選んでいる相手のぶんだけ出す。
+  ポイントは相手で分けず、1人1つの合計
   減るのは選んだ側のポイント。用意した側は減らない
 - 相手が選ぶと、用意した人が次に開いたときにポップで知らせる
 
@@ -192,8 +196,9 @@ SupabaseのRow Level Securityで実装する：
     3食ボーナスも slot を 'meals' にして、この一意制約に乗せている
   - 残りは my_points() 関数で合計だけ受け取る（全行を持ってこない）
   - 直す・消すのポリシーは作らない。あとから書き換えられないようにするため
-- gift_items (id, user_id, name, cost, created_at)
-  - 2人とも閲覧可。作成・編集・削除は本人のみ（用意した人だけが直せる）
+- gift_items (id, user_id, partner_id, name, cost, created_at)
+  - partner_id は誰に向けたプレゼントか。読めるのは用意した人と向けた相手だけ。
+    作成・編集・削除は本人のみ（用意した人だけが直せる）
 - gifts (id, chosen_by, offered_by, name, cost, created_at, seen_at)
   - chosen_by は選んだ人、offered_by は用意した人。seen_at は知らせを見た時刻
   - 閲覧は2人とも、作成は選ぶ人、seen_at の更新は用意した人のみ

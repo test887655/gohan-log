@@ -23,6 +23,7 @@ const toast = $('point-toast');
 const panel = $('gift-panel');
 const giftPoints = $('gift-points');
 const partnerTitle = $('partner-gift-title');
+const myTitle = $('my-gift-title');
 const partnerList = $('partner-gifts');
 const partnerEmpty = $('partner-gifts-empty');
 const myList = $('my-gifts');
@@ -88,10 +89,11 @@ export async function loadPoints(user, displayNames, partnerId) {
 }
 
 // 共有する相手を切り替えたとき（eri だけ）に呼ばれる。
-// 自分が用意したものは相手2人とも見えるので、変わるのは「もらえるもの」の側だけ
+// 用意するもの・もらえるものの両方が、選んだ相手のぶんに変わる
 export function setGiftPartner(partnerId) {
   partner = partnerId ? { id: partnerId, name: names.get(partnerId) ?? '相手' } : null;
   partnerTitle.textContent = partner ? `${partner.name} さんからもらえるもの` : 'もらえるもの';
+  myTitle.textContent = partner ? `${partner.name} さんに用意するもの` : '自分が用意するもの';
   if (me && !panel.hidden) loadGiftItems();
 }
 
@@ -288,7 +290,9 @@ async function loadGiftItems() {
     return;
   }
 
-  const mine = data.filter((item) => item.user_id === me.id);
+  // プレゼントは相手ごとに用意する（partner_id が「誰に向けたものか」）。
+  // 相手のぶんは RLS で自分向けのものしか届かない
+  const mine = data.filter((item) => item.user_id === me.id && item.partner_id === partner?.id);
   const theirs = data.filter((item) => item.user_id === partner?.id);
 
   myList.replaceChildren(...mine.map(renderMyGift));
@@ -440,7 +444,9 @@ giftForm.addEventListener('submit', async (event) => {
       if (error) throw error;
       if (data.length === 0) throw new Error('ログインの有効期限が切れているかもしれません。');
     } else {
-      const { error } = await supabase.from('gift_items').insert(values);
+      if (!partner) throw new Error('あげる相手がまだいません。');
+      const { error } = await supabase
+        .from('gift_items').insert({ ...values, partner_id: partner.id });
       if (error) throw error;
     }
 
