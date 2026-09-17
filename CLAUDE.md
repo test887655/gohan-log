@@ -33,6 +33,8 @@ SupabaseのRow Level Securityで実装する：
 - 写真（任意）＋一言メモ＋日時＋朝/昼/夜/間食の区分
   - 撮り忘れた食事も残せるよう、写真なしでも投稿できる。写真なしの記録は
     テキストだけのカードとして表示し、あとから編集で写真を追加できる
+  - お店の名前（任意）。外食したときに残せる。書いたときだけ
+    カードに「＠ お店の名前」として出す。家で食べたときは空のまま
 - 2人分が時系列で並ぶタイムライン。誰の投稿かわかる表示
 - 表示は1週間ずつ（月曜〜日曜）。前後の週に移動できる。一度に読む量を抑える狙いもある
 - 自分の投稿は編集・削除可
@@ -103,8 +105,9 @@ SupabaseのRow Level Securityで実装する：
 
 ## データモデル案
 - profiles (id, display_name)
-- meals (id, user_id, photo_path, note, eaten_at, meal_type, created_at)
+- meals (id, user_id, photo_path, note, place, eaten_at, meal_type, created_at)
   - photo_path は NULL 可（写真なしの記録）
+  - place は外食したお店の名前。NULL 可（40文字まで）
 - meal_reactions (id, meal_id, user_id, kind, created_at)
   - kind は 'like'（いいね）か 'recipe'（レシピが知りたい）
   - (meal_id, user_id, kind) が一意。押す＝insert、取り消す＝delete

@@ -43,6 +43,7 @@ const photoInput = $('photo');
 const photoPreview = $('photo-preview');
 const photoHint = $('photo-hint');
 const eatenAtInput = $('eaten-at');
+const placeInput = $('place');
 const noteInput = $('note');
 const saveButton = $('save-button');
 const formError = $('form-error');
@@ -259,6 +260,7 @@ function openForm(meal) {
     photoHint.hidden = false;
     mealForm.querySelector('input[value="' + meal.meal_type + '"]').checked = true;
     eatenAtInput.value = toInputValue(new Date(meal.eaten_at));
+    placeInput.value = meal.place ?? '';
     noteInput.value = meal.note ?? '';
   } else {
     mealFormTitle.textContent = '食事を記録';
@@ -311,6 +313,7 @@ mealForm.addEventListener('submit', async (event) => {
 
     const values = {
       photo_path: photoPath,
+      place: placeInput.value.trim() || null,
       note: noteInput.value.trim() || null,
       eaten_at: new Date(eatenAtInput.value).toISOString(),
       meal_type: mealForm.elements.meal_type.value,
@@ -566,6 +569,14 @@ function renderMeal(meal, photoUrl) {
   meta.textContent = `${displayNames.get(meal.user_id) ?? '不明'}・`
     + `${MEAL_LABELS[meal.meal_type]}・${dateFormatter.format(new Date(meal.eaten_at))}`;
   card.append(meta);
+
+  // 外食したときのお店。入れていない記録には出さない
+  if (meal.place) {
+    const place = document.createElement('p');
+    place.className = 'place-text';
+    place.textContent = `@ ${meal.place}`;
+    card.append(place);
+  }
 
   if (meal.note) {
     const note = document.createElement('p');

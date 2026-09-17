@@ -645,6 +645,13 @@ legend {
 
 .card.no-photo .meta { margin-top: 0; }
 
+/* 外食したお店。メモより控えめにして、日時の続きに見えるようにする */
+.place-text {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .note-text {
   margin: 4px 0 0;
 }
