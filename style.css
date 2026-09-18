@@ -110,8 +110,23 @@
   --radius-card: 20px;
   --radius-input: 14px;
   --card-shadow: 0 3px 14px rgba(58, 143, 191, 0.12);
-  --page-pattern: url("images/aquarium-bg.png");
-  --page-pattern-size: 400px 400px;
+  /* スマホでは写真のカードが画面の幅いっぱいに並び、散らした絵はほとんど隠れてしまう。
+     必ず空いている左右のふち（20px）にだけ、小さな生き物を縦に並べる */
+  --page-pattern: url("images/aquarium-left.png"), url("images/aquarium-right.png");
+  --page-pattern-size: 20px 520px, 20px 520px;
+  --page-pattern-position: left 0 top 0, right 0 top 260px;
+  --page-pattern-repeat: repeat-y, repeat-y;
+}
+
+/* 広い画面ではカードの外が広く空くので、生き物を全体に散らす */
+@media (min-width: 481px) {
+  :root[data-theme="aquarium"] {
+    /* タイトルのすぐ後ろにクジラが来ないよう、少しずらして敷く */
+    --page-pattern: url("images/aquarium-bg.png");
+    --page-pattern-size: 400px 400px;
+    --page-pattern-position: 200px 0;
+    --page-pattern-repeat: repeat;
+  }
 }
 
 /* ダーク。夜に見てまぶしくないよう、真っ黒ではなく少し温かみのある暗さにする */
@@ -158,8 +173,11 @@
 body {
   margin: 0;
   padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
-  background: var(--bg) var(--page-pattern);
+  background-color: var(--bg);
+  background-image: var(--page-pattern);
   background-size: var(--page-pattern-size);
+  background-position: var(--page-pattern-position, 0 0);
+  background-repeat: var(--page-pattern-repeat, repeat);
   color: var(--fg);
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
   line-height: 1.6;
@@ -187,6 +205,28 @@ body {
 
 /* 文字の高さの真ん中に合わせる。
    baseline だと文字より上に浮いて見えてしまうため、flex で中央ぞろえにする */
+/* 水族館ではお花の代わりに、タイトルの横へクジラを出す */
+.sea-title { display: none; }
+
+:root[data-theme="aquarium"] .sea-title {
+  display: block;
+  width: 1.55em;
+  height: auto;
+  flex: none;
+}
+
+/* 水族館だけ、冷蔵庫・吹き出しと「きせかえ」のあいだの空きに生き物を泳がせる */
+.toolbar-deco { display: none; }
+
+:root[data-theme="aquarium"] .toolbar-deco {
+  display: block;
+  flex: 1 1 0;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 48px;
+  background: url("images/aquarium-toolbar.png") center / auto 48px no-repeat;
+}
+
 .flower-title {
   width: 1.05em;
   height: 1.05em;

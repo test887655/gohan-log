@@ -163,7 +163,7 @@
       <!-- タイトルがごはんの画面へ戻るボタン。どの画面からでも押せる -->
       <h1><button type="button" id="home-button" class="title-button"
                   aria-label="ごはん記録に戻る" title="ごはん記録に戻る">
-        <svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg>ごはん記録</button></h1>
+        <svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg><img class="sea-title" src="images/whale.png" alt="">ごはん記録</button></h1>
       <button type="button" id="point-button" class="point-button"
               aria-label="プレゼントを見る" title="プレゼント" hidden>
         <span id="point-total">0</span>
@@ -189,6 +189,9 @@
         <span id="chat-dot" class="dot" hidden></span>
       </button>
     </div>
+
+    <!-- 水族館のときだけ、ここの空きに生き物の絵を出す -->
+    <span class="toolbar-deco" aria-hidden="true"></span>
 
     <!-- 見た目の切り替え。ふだんは畳んでおき、押したときだけ4つを出す。
          冷蔵庫たちと同じ列の、右のはしに置く -->
