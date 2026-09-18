@@ -269,6 +269,14 @@ function setPartner(id) {
 // ---------- 見た目の切り替え ----------
 
 const themeOptions = [...document.querySelectorAll('.theme-option')];
+const themeToggle = $('theme-toggle');
+const themePicker = $('theme-picker');
+
+// ふだんは畳んでおく。押すと4つの見た目が出る
+themeToggle.addEventListener('click', () => {
+  themePicker.hidden = !themePicker.hidden;
+  themeToggle.setAttribute('aria-expanded', String(!themePicker.hidden));
+});
 const themeColor = document.querySelector('meta[name="theme-color"]');
 const THEME_COLORS = { simple: '#e07a3f', adult: '#b2727f', cute: '#f0a8bd', dark: '#1a1a1c' };
 

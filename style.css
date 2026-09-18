@@ -184,7 +184,8 @@ body {
   gap: 6px;
 }
 
-.theme-option {
+.theme-option,
+.chip-button {
   min-height: 32px;
   padding: 4px 11px;
   border: 1px solid var(--border);
@@ -194,6 +195,11 @@ body {
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
+}
+
+.chip-button[aria-expanded="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .theme-option[aria-pressed="true"] {
@@ -441,14 +447,14 @@ legend {
   margin-bottom: 14px;
 }
 
-/* 冷蔵庫と吹き出しでアイコンが2つ並ぶぶん、狭い画面では見た目の列を
-   次の行へ送る。文字が縦に割れて読みにくくなるのを防ぐ */
+/* 「きせかえ」を押すと出る4つは、冷蔵庫たちの下に1行で並べる */
 .theme-picker {
-  flex: 1 1 auto;
+  flex: 1 0 100%;
   flex-wrap: nowrap;
 }
 
-.theme-option {
+.theme-option,
+.chip-button {
   white-space: nowrap;
 }
 
@@ -493,6 +499,7 @@ legend {
 .head-buttons {
   display: flex;
   flex: none;
+  align-items: center;
   gap: 8px;
 }
 
