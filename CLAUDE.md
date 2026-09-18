@@ -154,10 +154,11 @@ SupabaseのRow Level Securityで実装する：
     （images/ の aquarium-*.png と whale.png。どれも2倍の大きさで作ってCSSで半分に縮める）。
     スマホでは写真のカードが幅いっぱいに並ぶので、全体に散らすとカードの裏に隠れて見えない。
     そこで、必ず空いている場所にだけ置く：
-    左右のふち20pxに小さな生き物を縦に並べる（aquarium-left / right、repeat-y）、
+    左右のふち20pxに小さな生き物を縦に並べる（詰めすぎると多く見えるので、480pxに6匹ほど）（aquarium-left / right、repeat-y）、
     冷蔵庫・吹き出しと「きせかえ」のあいだにカメとクマノミ（.toolbar-deco）、
     タイトルの横はお花の代わりにクジラ（.sea-title）。
     タイトルとログアウトのあいだにイルカ（.header-deco）、
+    「◯◯さんとして記録中」の右（きせかえの下）にアザラシ（#greeting::after）、
     「記録する」と週の並びのあいだ（28px）とカードどうしのすきま（20px）にも、
     すきまに収まる大きさの小さな生き物（aquarium-gap*.png、::before で置く）。
     幅481px以上の広い画面だけ、全体に散らした壁紙（aquarium-bg.png）にする。
