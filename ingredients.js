@@ -38,7 +38,7 @@ function showEdited(when) {
     editedLine.hidden = true;
     return;
   }
-  editedLine.textContent = `さいご直したの：${editedFormatter.format(new Date(when))}`;
+  editedLine.textContent = `最終編集日：${editedFormatter.format(new Date(when))}`;
   editedLine.hidden = false;
 }
 
