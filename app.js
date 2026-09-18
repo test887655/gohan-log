@@ -142,24 +142,21 @@ let activeView = 'meals';
 // 冷蔵庫は食材リストを開くだけ。戻るのはお茶碗のほうの役目
 ingredientToggle.addEventListener('click', () => showView('ingredients'));
 
-$('back-to-meals').addEventListener('click', () => showView('meals'));
+// タイトルがごはんの画面へ戻るボタン。どの画面からでも押せる
+$('home-button').addEventListener('click', () => showView('meals'));
 
 // ★を付けた記録だけの画面。戻るのは食材リストと同じお茶碗
 $('favorite-open').addEventListener('click', () => showView('favorites'));
-$('back-to-meals-favorites').addEventListener('click', () => showView('meals'));
 
 // 写真だけを並べるアルバム
 $('album-open').addEventListener('click', () => showView('album'));
-$('back-to-meals-album').addEventListener('click', () => showView('meals'));
 
 // 外食したお店。2人で共有して見られる
 $('place-open').addEventListener('click', () => showView('places'));
-$('back-to-meals-places').addEventListener('click', () => showView('meals'));
 
 // そうだん。食材リストの吹き出しから開く。
 // 食材リストへはヘッダーの冷蔵庫、ごはんへは見出しのお茶碗で戻る
 $('chat-open').addEventListener('click', () => showView('chat'));
-$('back-to-meals-chat').addEventListener('click', () => showView('meals'));
 
 // 食材の行の吹き出しを押したとき。その食材のことを聞く形で開く
 document.addEventListener('ask-ingredient', (event) => {

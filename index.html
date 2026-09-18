@@ -67,17 +67,6 @@
     </g>
   </symbol>
 
-  <!-- ごはん茶碗。ごはんの画面へ戻るボタンに使う。
-       冷蔵庫と同じで、色はSVGに直接書く -->
-  <symbol id="rice" viewBox="0 0 24 24">
-      <!-- ごはん。茶碗の縁からはみ出さない幅で、こんもり盛る -->
-      <path d="M6 12c0-2.3 1.4-4.1 3.3-4.9.8-.3 1.1.2 1.7-.2.8-.6 1.7-.8 2.5-.5.8.3 1.2 1.1 2 1.3 1.6.5 2.5 2.1 2.5 4.3z"
-            fill="#fffdf7" stroke="#cdc0a8" stroke-width=".9" stroke-linejoin="round"/>
-      <!-- 茶碗 -->
-      <path d="M4.6 12h14.8c0 3.6-3 6.5-6.6 6.5h-1.6c-3.6 0-6.6-2.9-6.6-6.5z" fill="#6f93ad"/>
-      <!-- 高台（茶碗の脚） -->
-      <path d="M10 18.4h4l.9 2.2H9.1z" fill="#5c7d94"/>
-  </symbol>
 
   <!-- 写真。アルバムのボタンに使う。ほかの絵と同じで色はSVGに直接書く -->
   <symbol id="photo-icon" viewBox="0 0 24 24">
@@ -171,7 +160,10 @@
 <main id="screen-app" class="screen" hidden>
   <header>
     <div class="title-row">
-      <h1><svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg>ごはん記録</h1>
+      <!-- タイトルがごはんの画面へ戻るボタン。どの画面からでも押せる -->
+      <h1><button type="button" id="home-button" class="title-button"
+                  aria-label="ごはん記録に戻る" title="ごはん記録に戻る">
+        <svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg>ごはん記録</button></h1>
       <button type="button" id="point-button" class="point-button"
               aria-label="プレゼントを見る" title="プレゼント" hidden>
         <span id="point-total">0</span>
@@ -203,6 +195,15 @@
   <div id="partner-picker" class="partner-picker" role="group" aria-label="共有する相手" hidden></div>
 
   <section id="view-meals">
+  <!-- そうだん。ごはんの画面から開ける。新しい書き込みがあると赤い丸が付く -->
+  <div class="chat-bar">
+    <button type="button" id="chat-open" class="icon-button round"
+            aria-label="そうだん" title="そうだん">
+      <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
+      <span id="chat-dot" class="dot" hidden></span>
+    </button>
+  </div>
+
   <button id="open-form-button" class="primary block">＋ 記録する</button>
 
   <form id="meal-form" hidden>
@@ -283,17 +284,6 @@
   <section id="view-ingredients" hidden>
     <div class="view-head">
       <h2>食材リスト</h2>
-      <div class="head-buttons">
-        <button type="button" id="chat-open" class="icon-button round"
-                aria-label="そうだん" title="そうだん">
-          <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
-          <span id="chat-dot" class="dot" hidden></span>
-        </button>
-        <button type="button" id="back-to-meals" class="icon-button round"
-                aria-label="ごはんに戻る" title="ごはんに戻る">
-          <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
-        </button>
-      </div>
     </div>
 
     <button id="open-ingredient-button" class="primary block">＋ 食材を追加</button>
@@ -380,10 +370,6 @@
   <section id="view-favorites" hidden>
     <div class="view-head">
       <h2>お気に入り</h2>
-      <button type="button" id="back-to-meals-favorites" class="icon-button round"
-              aria-label="ごはんに戻る" title="ごはんに戻る">
-        <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
-      </button>
     </div>
 
     <div id="favorite-empty" class="empty">
@@ -398,10 +384,6 @@
   <section id="view-album" hidden>
     <div class="view-head">
       <h2>アルバム</h2>
-      <button type="button" id="back-to-meals-album" class="icon-button round"
-              aria-label="ごはんに戻る" title="ごはんに戻る">
-        <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
-      </button>
     </div>
 
     <div id="album-empty" class="empty">
@@ -416,10 +398,6 @@
   <section id="view-places" hidden>
     <div class="view-head">
       <h2>お店</h2>
-      <button type="button" id="back-to-meals-places" class="icon-button round"
-              aria-label="ごはんに戻る" title="ごはんに戻る">
-        <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
-      </button>
     </div>
 
     <button id="open-place-button" class="primary block">＋ お店を追加</button>
@@ -456,18 +434,12 @@
   <section id="view-chat" hidden>
     <div class="view-head">
       <h2>そうだん</h2>
-      <div class="head-buttons">
-        <!-- 今どこを開いているかの目印。食材リストの冷蔵庫と同じように色が付く。
-             食材リストへはヘッダーの冷蔵庫で戻る -->
-        <span class="icon-button round" role="img" aria-pressed="true"
-              aria-label="そうだんを開いています" title="そうだん">
-          <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
-        </span>
-        <button type="button" id="back-to-meals-chat" class="icon-button round"
-                aria-label="ごはんに戻る" title="ごはんに戻る">
-          <svg class="rice-icon" aria-hidden="true"><use href="#rice"/></svg>
-        </button>
-      </div>
+      <!-- 今どこを開いているかの目印。食材リストの冷蔵庫と同じように色が付く。
+           ごはんへはタイトル、食材リストへはヘッダーの冷蔵庫で戻る -->
+      <span class="icon-button round" role="img" aria-pressed="true"
+            aria-label="そうだんを開いています" title="そうだん">
+        <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
+      </span>
     </div>
 
     <button id="chat-ask-button" class="primary block">＋ 聞きたいことを書く</button>
