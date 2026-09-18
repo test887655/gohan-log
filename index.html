@@ -176,11 +176,19 @@
   </header>
 
   <div class="toolbar">
-    <button type="button" id="ingredient-toggle" class="icon-button round" aria-pressed="false"
-            aria-label="食材リスト" title="食材リスト">
-      <svg class="fridge-icon" aria-hidden="true"><use href="#fridge"/></svg>
-      <span id="fridge-dot" class="dot" hidden></span>
-    </button>
+    <div class="head-buttons">
+      <button type="button" id="ingredient-toggle" class="icon-button round" aria-pressed="false"
+              aria-label="食材リスト" title="食材リスト">
+        <svg class="fridge-icon" aria-hidden="true"><use href="#fridge"/></svg>
+        <span id="fridge-dot" class="dot" hidden></span>
+      </button>
+      <!-- そうだん。冷蔵庫の横に置くので、どの画面からでも開ける -->
+      <button type="button" id="chat-open" class="icon-button round" aria-pressed="false"
+              aria-label="そうだん" title="そうだん">
+        <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
+        <span id="chat-dot" class="dot" hidden></span>
+      </button>
+    </div>
 
     <div class="theme-picker" role="group" aria-label="見た目を選ぶ">
       <button type="button" class="theme-option" data-theme="simple">シンプル</button>
@@ -195,15 +203,6 @@
   <div id="partner-picker" class="partner-picker" role="group" aria-label="共有する相手" hidden></div>
 
   <section id="view-meals">
-  <!-- そうだん。ごはんの画面から開ける。新しい書き込みがあると赤い丸が付く -->
-  <div class="chat-bar">
-    <button type="button" id="chat-open" class="icon-button round"
-            aria-label="そうだん" title="そうだん">
-      <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
-      <span id="chat-dot" class="dot" hidden></span>
-    </button>
-  </div>
-
   <button id="open-form-button" class="primary block">＋ 記録する</button>
 
   <form id="meal-form" hidden>
@@ -434,12 +433,6 @@
   <section id="view-chat" hidden>
     <div class="view-head">
       <h2>そうだん</h2>
-      <!-- 今どこを開いているかの目印。食材リストの冷蔵庫と同じように色が付く。
-           ごはんへはタイトル、食材リストへはヘッダーの冷蔵庫で戻る -->
-      <span class="icon-button round" role="img" aria-pressed="true"
-            aria-label="そうだんを開いています" title="そうだん">
-        <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
-      </span>
     </div>
 
     <button id="chat-ask-button" class="primary block">＋ 聞きたいことを書く</button>

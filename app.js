@@ -136,6 +136,7 @@ function showStatus(message) {
 // ---------- ごはん / 食材の切り替え ----------
 
 const ingredientToggle = $('ingredient-toggle');
+const chatToggle = $('chat-open');
 const loadedViews = new Set();
 let activeView = 'meals';
 
@@ -156,7 +157,7 @@ $('place-open').addEventListener('click', () => showView('places'));
 
 // そうだん。食材リストの吹き出しから開く。
 // 食材リストへはヘッダーの冷蔵庫、ごはんへは見出しのお茶碗で戻る
-$('chat-open').addEventListener('click', () => showView('chat'));
+chatToggle.addEventListener('click', () => showView('chat'));
 
 // 食材の行の吹き出しを押したとき。その食材のことを聞く形で開く
 document.addEventListener('ask-ingredient', (event) => {
@@ -167,6 +168,8 @@ document.addEventListener('ask-ingredient', (event) => {
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
+  // 開いている画面のアイコンに色を付ける（冷蔵庫と吹き出しで同じ見た目）
+  chatToggle.setAttribute('aria-pressed', String(view === 'chat'));
   // キラキラはごはんの画面にだけ出す
   setHomeScreen(view === 'meals');
   $('view-meals').hidden = view !== 'meals';

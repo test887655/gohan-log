@@ -434,10 +434,22 @@ legend {
 /* 食材のボタンと見た目のボタンを、ヘッダーの下に1行で並べる */
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 14px;
+}
+
+/* 冷蔵庫と吹き出しでアイコンが2つ並ぶぶん、狭い画面では見た目の列を
+   次の行へ送る。文字が縦に割れて読みにくくなるのを防ぐ */
+.theme-picker {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+}
+
+.theme-option {
+  white-space: nowrap;
 }
 
 .icon-button {
@@ -523,12 +535,7 @@ legend {
   cursor: pointer;
 }
 
-/* そうだんの吹き出しは「＋ 記録する」の上に、右へ寄せて置く */
-.chat-bar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 4px;
-}
+
 
 /* ---------- 食材リスト ---------- */
 
