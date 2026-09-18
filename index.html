@@ -20,7 +20,7 @@
   // 画面が出る前に見た目を決める。あとから当てるとチカッと切り替わってしまう
   try {
     const saved = localStorage.getItem('theme');
-    if (saved === 'cute' || saved === 'adult' || saved === 'dark') {
+    if (saved === 'cute' || saved === 'adult' || saved === 'aquarium' || saved === 'dark') {
       document.documentElement.dataset.theme = saved;
     }
   } catch (error) { /* プライベートブラウズなどで使えない場合は既定の見た目 */ }
@@ -199,6 +199,7 @@
       <button type="button" class="theme-option" data-theme="simple">シンプル</button>
       <button type="button" class="theme-option" data-theme="adult">大人</button>
       <button type="button" class="theme-option" data-theme="cute">かわいい</button>
+      <button type="button" class="theme-option" data-theme="aquarium">水族館</button>
       <button type="button" class="theme-option" data-theme="dark">ダーク</button>
     </div>
   </div>

@@ -1,5 +1,5 @@
 // アプリの見た目部分だけをキャッシュする。データと写真はSupabaseから毎回取得する。
-const CACHE = 'gohan-v18';
+const CACHE = 'gohan-v19';
 const ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
+  './images/aquarium-bg.png',
 ];
 
 self.addEventListener('install', (event) => {

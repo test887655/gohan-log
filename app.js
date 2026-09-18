@@ -278,7 +278,7 @@ themeToggle.addEventListener('click', () => {
   themeToggle.setAttribute('aria-expanded', String(!themePicker.hidden));
 });
 const themeColor = document.querySelector('meta[name="theme-color"]');
-const THEME_COLORS = { simple: '#e07a3f', adult: '#b2727f', cute: '#f0a8bd', dark: '#1a1a1c' };
+const THEME_COLORS = { simple: '#e07a3f', adult: '#b2727f', cute: '#f0a8bd', aquarium: '#8cc4e0', dark: '#1a1a1c' };
 
 for (const option of themeOptions) {
   option.addEventListener('click', () => setTheme(option.dataset.theme));
