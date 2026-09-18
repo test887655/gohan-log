@@ -156,9 +156,9 @@ $('back-to-meals-album').addEventListener('click', () => showView('meals'));
 $('place-open').addEventListener('click', () => showView('places'));
 $('back-to-meals-places').addEventListener('click', () => showView('meals'));
 
-// そうだん。食材リストの吹き出しから開き、見出しの冷蔵庫かお茶碗で戻る
+// そうだん。食材リストの吹き出しから開く。
+// 食材リストへはヘッダーの冷蔵庫、ごはんへは見出しのお茶碗で戻る
 $('chat-open').addEventListener('click', () => showView('chat'));
-$('back-to-ingredients').addEventListener('click', () => showView('ingredients'));
 $('back-to-meals-chat').addEventListener('click', () => showView('meals'));
 
 // 食材の行の吹き出しを押したとき。その食材のことを聞く形で開く
@@ -170,9 +170,6 @@ document.addEventListener('ask-ingredient', (event) => {
 function showView(view) {
   activeView = view;
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
-  // そうだんのあいだはヘッダーの冷蔵庫を引っ込める。
-  // 冷蔵庫が2つ出ていると、どちらで戻るのか分かりにくいため
-  ingredientToggle.hidden = view === 'chat';
   // キラキラはごはんの画面にだけ出す
   setHomeScreen(view === 'meals');
   $('view-meals').hidden = view !== 'meals';
