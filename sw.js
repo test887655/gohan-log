@@ -1,5 +1,5 @@
 // アプリの見た目部分だけをキャッシュする。データと写真はSupabaseから毎回取得する。
-const CACHE = 'gohan-v20';
+const CACHE = 'gohan-v21';
 const ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,10 @@ const ASSETS = [
   './images/aquarium-left.png',
   './images/aquarium-right.png',
   './images/aquarium-toolbar.png',
+  './images/aquarium-header.png',
+  './images/aquarium-gap.png',
+  './images/aquarium-gap-a.png',
+  './images/aquarium-gap-b.png',
   './images/whale.png',
 ];
 

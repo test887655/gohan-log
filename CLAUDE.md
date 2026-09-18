@@ -157,6 +157,9 @@ SupabaseのRow Level Securityで実装する：
     左右のふち20pxに小さな生き物を縦に並べる（aquarium-left / right、repeat-y）、
     冷蔵庫・吹き出しと「きせかえ」のあいだにカメとクマノミ（.toolbar-deco）、
     タイトルの横はお花の代わりにクジラ（.sea-title）。
+    タイトルとログアウトのあいだにイルカ（.header-deco）、
+    「記録する」と週の並びのあいだ（28px）とカードどうしのすきま（20px）にも、
+    すきまに収まる大きさの小さな生き物（aquarium-gap*.png、::before で置く）。
     幅481px以上の広い画面だけ、全体に散らした壁紙（aquarium-bg.png）にする。
     タイトルのすぐ後ろにクジラが来ないよう、少しずらして敷いている。
     壁紙は --page-pattern（-size / -position / -repeat）で、カンマ区切りで何枚でも重ねられる。

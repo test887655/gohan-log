@@ -113,8 +113,8 @@
   /* スマホでは写真のカードが画面の幅いっぱいに並び、散らした絵はほとんど隠れてしまう。
      必ず空いている左右のふち（20px）にだけ、小さな生き物を縦に並べる */
   --page-pattern: url("images/aquarium-left.png"), url("images/aquarium-right.png");
-  --page-pattern-size: 20px 520px, 20px 520px;
-  --page-pattern-position: left 0 top 0, right 0 top 260px;
+  --page-pattern-size: 20px 480px, 20px 480px;
+  --page-pattern-position: left 0 top 0, right 0 top 240px;
   --page-pattern-repeat: repeat-y, repeat-y;
 }
 
@@ -225,6 +225,53 @@ body {
   min-width: 0;
   min-height: 48px;
   background: url("images/aquarium-toolbar.png") center / auto 48px no-repeat;
+}
+
+/* タイトルとログアウトのあいだの空きにも、イルカと小さな魚 */
+.header-deco { display: none; }
+
+:root[data-theme="aquarium"] .header-deco {
+  display: block;
+  flex: 1 1 0;
+  align-self: stretch;
+  min-width: 0;
+  background: url("images/aquarium-header.png") center / auto 44px no-repeat;
+}
+
+/* 「記録する」と週の並びのあいだ、カードとカードのすきまにも小さな生き物を置く。
+   すきまの高さ（28px・20px）に収まる大きさにしてあるので、カードには重ならない */
+:root[data-theme="aquarium"] .week-nav,
+:root[data-theme="aquarium"] #timeline > .card + .card,
+:root[data-theme="aquarium"] #favorite-list > .card + .card {
+  position: relative;
+}
+
+:root[data-theme="aquarium"] .week-nav::before,
+:root[data-theme="aquarium"] #timeline > .card + .card::before,
+:root[data-theme="aquarium"] #favorite-list > .card + .card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+:root[data-theme="aquarium"] .week-nav::before {
+  top: -28px;
+  height: 28px;
+  background: url("images/aquarium-gap.png") center / auto 26px no-repeat;
+}
+
+:root[data-theme="aquarium"] #timeline > .card + .card::before,
+:root[data-theme="aquarium"] #favorite-list > .card + .card::before {
+  top: -20px;
+  height: 20px;
+  background: url("images/aquarium-gap-a.png") center / auto 18px no-repeat;
+}
+
+:root[data-theme="aquarium"] #timeline > .card:nth-child(odd)::before,
+:root[data-theme="aquarium"] #favorite-list > .card:nth-child(odd)::before {
+  background-image: url("images/aquarium-gap-b.png");
 }
 
 .flower-title {
