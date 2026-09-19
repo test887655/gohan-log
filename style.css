@@ -1205,7 +1205,7 @@ button.place-main { cursor: pointer; }
   margin: 4px 0 0;
 }
 
-/* 一行日記。ごはんのメモと見分けがつくよう、薄い色の帯に入れて少し小さくする */
+/* 日記。ごはんのメモと見分けがつくよう、薄い色の帯に入れて少し小さくする */
 .diary-text {
   margin: 8px 0 0;
   padding: 6px 10px;

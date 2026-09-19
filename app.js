@@ -953,7 +953,7 @@ function renderMeal(meal, photoUrl) {
     card.append(note);
   }
 
-  // 一行日記。ごはんのメモとは別の、その日の気分やできごと。書いたときだけ出す
+  // 日記。ごはんのメモとは別の、その日の気分やできごと。書いたときだけ出す
   if (meal.diary) {
     const diary = document.createElement('p');
     diary.className = 'diary-text';
