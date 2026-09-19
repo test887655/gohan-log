@@ -340,7 +340,8 @@ $('logout-button').addEventListener('click', () => {
 // 開き直さなくても新しい記録（とアプリの新しい版）が届くよう、自前で用意する。
 // 更新はページごと読み直す。見ていた画面は覚えておいて、読み直したあとに戻す
 
-const PULL_READY = 70; // これだけ引っぱったら、離したときに更新する（px）
+// これだけ引っぱったら、離したときに更新する（px）。70では軽すぎて、うっかり更新しやすかった
+const PULL_READY = 110;
 const pullBox = $('pull-refresh');
 const pullText = $('pull-text');
 let pullStart = null;
@@ -382,8 +383,8 @@ window.addEventListener('touchmove', (event) => {
   pullBox.classList.add('pulling');
   pullBox.classList.toggle('ready', ready);
   pullText.textContent = ready ? '離すと更新' : '引っぱって更新';
-  // 指の動きの半分だけ下ろす。引っぱる手ごたえが出る
-  pullBox.style.transform = `translate(-50%, ${Math.min(pullDistance / 2, 50) - 40}px)`;
+  // 指の動きの半分より少なめに下ろす。引っぱる手ごたえが出る
+  pullBox.style.transform = `translate(-50%, ${Math.min(pullDistance / 2.2, 50) - 40}px)`;
 }, { passive: true });
 
 window.addEventListener('touchend', () => {
