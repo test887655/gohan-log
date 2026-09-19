@@ -1205,6 +1205,24 @@ button.place-main { cursor: pointer; }
   margin: 4px 0 0;
 }
 
+/* 一行日記。ごはんのメモと見分けがつくよう、薄い色の帯に入れて少し小さくする */
+.diary-text {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-input);
+  background: var(--accent-tint);
+  color: var(--fg);
+  font-size: 0.9rem;
+}
+
+.diary-text::before {
+  content: "日記";
+  margin-right: 8px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
 .card .row { margin-top: 10px; }
 .reactions + .row { margin-top: 14px; }
 

@@ -64,6 +64,7 @@ const photoHint = $('photo-hint');
 const eatenAtInput = $('eaten-at');
 const placeInput = $('place');
 const noteInput = $('note');
+const diaryInput = $('diary');
 const saveButton = $('save-button');
 const formError = $('form-error');
 const timeline = $('timeline');
@@ -493,6 +494,7 @@ function openForm(meal) {
     eatenAtInput.value = toInputValue(new Date(meal.eaten_at));
     placeInput.value = meal.place ?? '';
     noteInput.value = meal.note ?? '';
+    diaryInput.value = meal.diary ?? '';
   } else {
     mealFormTitle.textContent = '食事を記録';
     photoHint.textContent = '写真なしでも記録できます。';
@@ -546,6 +548,7 @@ mealForm.addEventListener('submit', async (event) => {
       photo_path: photoPath,
       place: placeInput.value.trim() || null,
       note: noteInput.value.trim() || null,
+      diary: diaryInput.value.trim() || null,
       eaten_at: new Date(eatenAtInput.value).toISOString(),
       meal_type: mealForm.elements.meal_type.value,
     };
@@ -948,6 +951,14 @@ function renderMeal(meal, photoUrl) {
     note.className = 'note-text';
     note.textContent = meal.note;
     card.append(note);
+  }
+
+  // 一行日記。ごはんのメモとは別の、その日の気分やできごと。書いたときだけ出す
+  if (meal.diary) {
+    const diary = document.createElement('p');
+    diary.className = 'diary-text';
+    diary.textContent = meal.diary;
+    card.append(diary);
   }
 
   const reactionBox = renderReactions(meal);

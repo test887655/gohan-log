@@ -52,6 +52,9 @@ SupabaseのRow Level Securityで実装する：
 - 写真（任意）＋一言メモ＋日時＋朝/昼/夜/間食の区分
   - 撮り忘れた食事も残せるよう、写真なしでも投稿できる。写真なしの記録は
     テキストだけのカードとして表示し、あとから編集で写真を追加できる
+  - 一行日記（任意、100文字まで）。ごはんのメモとは別に、その日の気分やできごとを書く
+    （「今日は忙しくてお惣菜多め」「ダイエット中。目指せ-5キロ！」など）。
+    書いたときだけ、カードのメモの下に「日記」と付けた薄い色の帯で出す
   - お店の名前（任意）。外食したときに残せる。書いたときだけ
     カードに地図のピンのマークを付けて出す。家で食べたときは空のまま。
     登録済みのお店から選べる（下の「お店」を見る）
@@ -185,6 +188,7 @@ SupabaseのRow Level Securityで実装する：
 - meals (id, user_id, photo_path, note, place, eaten_at, meal_type, created_at)
   - photo_path は NULL 可（写真なしの記録）
   - place は外食したお店の名前。NULL 可（40文字まで）
+  - diary は一行日記。NULL 可（100文字まで。制約 meals_diary_length）
   - favorite は自分で付ける★。true / false（既定は false）
 - meal_reactions (id, meal_id, user_id, kind, created_at)
   - kind は 'like'（いいね）'yummy'（おいしそう）'recipe'（レシピが知りたい）
