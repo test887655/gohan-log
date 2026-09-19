@@ -335,6 +335,83 @@ $('logout-button').addEventListener('click', () => {
   supabase.auth.signOut();
 });
 
+// ---------- 下に引っぱって更新 ----------
+// ホーム画面から開いたアプリには、ブラウザの「引っぱって更新」が無い。
+// 開き直さなくても新しい記録（とアプリの新しい版）が届くよう、自前で用意する。
+// 更新はページごと読み直す。見ていた画面は覚えておいて、読み直したあとに戻す
+
+const PULL_READY = 70; // これだけ引っぱったら、離したときに更新する（px）
+const pullBox = $('pull-refresh');
+const pullText = $('pull-text');
+let pullStart = null;
+let pullDistance = 0;
+
+// 書きかけの入力や開いているポップアップがあるときは更新しない。読み直すと消えてしまう
+function pullBlocked() {
+  if (appScreen.hidden) return true;
+  if ([...document.querySelectorAll('.overlay')].some((el) => !el.hidden)) return true;
+  return [...document.querySelectorAll('input, textarea')].some((el) => {
+    if (el.offsetParent === null) return false; // 隠れている欄は見ない
+    if (el.type === 'file') return el.files.length > 0;
+    if (el.type === 'radio' || el.type === 'checkbox') return el.checked !== el.defaultChecked;
+    return el.value !== el.defaultValue;
+  });
+}
+
+function hidePull() {
+  pullBox.classList.remove('pulling', 'ready');
+  pullBox.style.transform = '';
+}
+
+window.addEventListener('touchstart', (event) => {
+  pullStart = null;
+  if (window.scrollY > 0 || event.touches.length !== 1 || pullBlocked()) return;
+  pullStart = event.touches[0].clientY;
+  pullDistance = 0;
+}, { passive: true });
+
+window.addEventListener('touchmove', (event) => {
+  if (pullStart === null) return;
+  pullDistance = event.touches[0].clientY - pullStart;
+  // 上へ戻した、または途中からふつうのスクロールになったときは案内を引っこめる
+  if (pullDistance <= 0 || window.scrollY > 0) {
+    hidePull();
+    return;
+  }
+  const ready = pullDistance >= PULL_READY;
+  pullBox.classList.add('pulling');
+  pullBox.classList.toggle('ready', ready);
+  pullText.textContent = ready ? '離すと更新' : '引っぱって更新';
+  // 指の動きの半分だけ下ろす。引っぱる手ごたえが出る
+  pullBox.style.transform = `translate(-50%, ${Math.min(pullDistance / 2, 50) - 40}px)`;
+}, { passive: true });
+
+window.addEventListener('touchend', () => {
+  if (pullStart === null) return;
+  pullStart = null;
+  if (pullDistance < PULL_READY) {
+    hidePull();
+    return;
+  }
+  pullText.textContent = '更新中…';
+  try {
+    sessionStorage.setItem('pull-view', activeView);
+  } catch (error) { /* 覚えられなくても、ごはんの画面で開くだけ */ }
+  location.reload();
+});
+
+window.addEventListener('touchcancel', () => {
+  pullStart = null;
+  hidePull();
+});
+
+// 引っぱって更新したあとは、見ていた画面に戻す
+try {
+  const view = sessionStorage.getItem('pull-view');
+  sessionStorage.removeItem('pull-view');
+  if (['meals', 'ingredients', 'favorites', 'album', 'places', 'chat'].includes(view)) showView(view);
+} catch (error) { /* 使えないときは、ごはんの画面のまま */ }
+
 supabase.auth.onAuthStateChange((_event, session) => {
   // コールバック内で直接awaitすると固まることがあるため、処理を外に出す
   setTimeout(() => handleSession(session), 0);

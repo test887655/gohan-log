@@ -158,6 +158,11 @@
 </main>
 
 <main id="screen-app" class="screen" hidden>
+  <!-- 画面のいちばん上で下へ引っぱると出る案内。離すと読み直す -->
+  <div id="pull-refresh" class="pull-refresh" aria-hidden="true">
+    <span class="pull-arrow">↓</span><span id="pull-text">引っぱって更新</span>
+  </div>
+
   <header>
     <div class="title-row">
       <!-- タイトルがごはんの画面へ戻るボタン。どの画面からでも押せる -->
