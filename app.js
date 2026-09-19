@@ -714,8 +714,10 @@ async function loadFavorites(more = false) {
 let reactions = new Map(); // meal_id -> [{ user_id, kind }]
 
 async function loadReactions(mealIds) {
-  reactions = new Map();
-  if (mealIds.length === 0) return;
+  if (mealIds.length === 0) {
+    reactions = new Map();
+    return;
+  }
 
   const { data, error } = await supabase
     .from('meal_reactions')
@@ -724,13 +726,19 @@ async function loadReactions(mealIds) {
 
   if (error) {
     console.error(error);
+    reactions = new Map();
     return;
   }
 
+  // 開き直したときなどは読み込みが2回重なることがある。
+  // 共有の入れ物に直接足すと、2回分が混ざって「hana・hana さんがいいね」になるので、
+  // 手元でまとめてから丸ごと入れ替える
+  const next = new Map();
   for (const row of data) {
-    if (!reactions.has(row.meal_id)) reactions.set(row.meal_id, []);
-    reactions.get(row.meal_id).push(row);
+    if (!next.has(row.meal_id)) next.set(row.meal_id, []);
+    next.get(row.meal_id).push(row);
   }
+  reactions = next;
 }
 
 function makeIcon(type) {
