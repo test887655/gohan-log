@@ -12,6 +12,18 @@ const THREE_MEALS = ['breakfast', 'lunch', 'dinner'];
 // キラキラの slot。'meals' はここに入れない（星の判定に混ぜないため）
 const SPARKLE_SLOTS = ['morning', 'noon', 'night'];
 
+// ガチャを出す人（表示名で決める）。ほかの人の画面には出さない
+const GACHA_USERS = ['eri', 'hana'];
+// 出るポイントと、その出やすさ（重み）。合計で割った割合で当たる
+const GACHA_PRIZES = [
+  { points: 1, weight: 20 },
+  { points: 2, weight: 20 },
+  { points: 3, weight: 20 },
+  { points: 5, weight: 25 },
+  { points: 10, weight: 10 },
+  { points: 30, weight: 5 }, // 大当たり
+];
+
 const $ = (id) => document.getElementById(id);
 
 const pointButton = $('point-button');
@@ -35,6 +47,10 @@ const giftName = $('gift-name');
 const giftCost = $('gift-cost');
 const giftSave = $('gift-save');
 const giftError = $('gift-error');
+
+const gachaBox = $('gacha');
+const gachaDraw = $('gacha-draw');
+const gachaResult = $('gacha-result');
 
 const news = $('gift-news');
 const newsText = $('gift-news-text');
@@ -301,8 +317,80 @@ async function openPanel() {
   panel.hidden = false;
   lockScroll();
   closeGiftForm();
+  showGacha();
   await loadGiftItems();
 }
+
+// ---------- ガチャ ----------
+
+// 今日もう引いたかは、ポイントの記録（slot が 'gacha' の行）で分かる。
+// 同じ日に2回入らないよう、表でも (user_id, claim_day, slot) が一意になっている
+function showGacha() {
+  const canPlay = GACHA_USERS.includes(names.get(me?.id) ?? '');
+  gachaBox.hidden = !canPlay;
+  if (!canPlay) return;
+
+  const done = claimedToday.has('gacha');
+  gachaDraw.disabled = done;
+  gachaDraw.textContent = done ? '今日はもう引きました' : '🎁 今日のガチャを引く';
+  gachaResult.textContent = done ? 'また明日引けます。' : '';
+  gachaResult.classList.toggle('done', done);
+}
+
+function drawPrize() {
+  const totalWeight = GACHA_PRIZES.reduce((sum, prize) => sum + prize.weight, 0);
+  let hit = Math.random() * totalWeight;
+  for (const prize of GACHA_PRIZES) {
+    hit -= prize.weight;
+    if (hit < 0) return prize.points;
+  }
+  return GACHA_PRIZES[0].points;
+}
+
+gachaDraw.addEventListener('click', async () => {
+  gachaDraw.disabled = true;
+  gachaResult.classList.remove('done');
+
+  // 回っているように見せる。結果が出るまでのあいだだけ
+  const faces = ['🎁', '✨', '🍀', '🎀'];
+  let step = 0;
+  gachaResult.textContent = faces[0];
+  const spin = setInterval(() => {
+    step += 1;
+    gachaResult.textContent = faces[step % faces.length];
+  }, 120);
+
+  const day = currentSlot().day;
+  const gained = drawPrize();
+  const { error } = await supabase.from('points').insert({
+    kind: 'gacha', amount: gained, claim_day: day, slot: 'gacha',
+  });
+
+  clearInterval(spin);
+
+  // 23505 は、その日のぶんをもう引いてあるとき（別の端末で引いた場合など）
+  if (error && error.code === '23505') {
+    claimedToday.add('gacha');
+    await refreshTotal();
+    showGacha();
+    return;
+  }
+
+  if (error) {
+    console.error(error);
+    gachaResult.textContent = '引けませんでした。開き直してから試してください。';
+    gachaResult.classList.add('done');
+    gachaDraw.disabled = false;
+    return;
+  }
+
+  claimedToday.add('gacha');
+  setTotal(total + gained);
+  gachaDraw.textContent = '今日はもう引きました';
+  gachaResult.textContent = gained >= 30
+    ? `🎉 大当たり！ ${gained} ポイント`
+    : `＋${gained} ポイント`;
+});
 
 async function loadGiftItems() {
   const { data, error } = await supabase

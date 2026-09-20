@@ -497,6 +497,12 @@
       </div>
       <p class="hint"><strong id="gift-points">0</strong> ポイント持っています</p>
 
+      <!-- ガチャ。1日1回だけ引ける。出せる人は決まっている（points.js の GACHA_USERS） -->
+      <div id="gacha" class="gacha" hidden>
+        <button type="button" id="gacha-draw" class="primary block">🎁 今日のガチャを引く</button>
+        <p id="gacha-result" class="gacha-result" aria-live="polite"></p>
+      </div>
+
       <h3 id="partner-gift-title">もらえるもの</h3>
       <div id="partner-gifts" class="gift-list"></div>
       <p id="partner-gifts-empty" class="hint" hidden>相手がまだ用意していません。</p>

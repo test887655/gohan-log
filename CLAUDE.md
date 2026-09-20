@@ -122,6 +122,11 @@ SupabaseのRow Level Securityで実装する：
   「用意するもの」「もらえるもの」とも、選んでいる相手のぶんだけ出す。
   ポイントは相手で分けず、1人1つの合計
   減るのは選んだ側のポイント。用意した側は減らない
+- ガチャ：プレゼントの画面のいちばん上にある。1日1回だけ引けて、ポイントが当たる。
+  出るのは 1/2/3（各20%）5（25%）10（10%）30（5%・大当たり）。
+  出す人は points.js の GACHA_USERS（表示名で判定。今は eri と hana だけ。minami には出さない）。
+  1日1回は points の (user_id, claim_day, slot) の一意（points_one_per_slot_idx）で守る。
+  kind も slot も 'gacha'。日の区切りはキラキラと同じ（朝5時）
 - 相手が選ぶと、用意した人が次に開いたときにポップで知らせる
 - プレゼントの画面は、相手が用意したもの（もらえるもの）に色を付けて、自分が用意したものと
   見分けられるようにする（.gift-item.theirs）。1件ずつの余白は詰めすぎない。
@@ -227,7 +232,9 @@ SupabaseのRow Level Securityで実装する：
 - shopping_items (id, user_id, name, quantity, unit, done, created_at)
 - points (id, user_id, kind, amount, claim_day, slot, created_at)
   - kind は 'sparkle'（キラキラ）'star'（ボーナス）'meals'（3食そろった）
-    'gift'（使った）。使うと amount はマイナス
+    'gift'（使った）'gacha'（ガチャ）。使うと amount はマイナス。
+    slot は 'morning' / 'noon' / 'night' / 'meals' / 'gacha'。
+    どちらも check 制約で決まっているので、種類を足すときは制約も直す
   - (user_id, claim_day, slot) が一意。同じ時間帯で二度は取れない。
     3食ボーナスも slot を 'meals' にして、この一意制約に乗せている
   - 残りは my_points() 関数で合計だけ受け取る（全行を持ってこない）

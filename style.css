@@ -1446,6 +1446,32 @@ button.place-main { cursor: pointer; }
 
 .sheet .block { margin-bottom: 0; }
 
+/* ガチャ。1日1回のお楽しみ */
+.gacha {
+  margin: 16px 0 4px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+
+.gacha .block { margin-bottom: 0; }
+
+.gacha-result {
+  margin: 10px 0 0;
+  min-height: 1.6em;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: var(--accent);
+}
+
+/* 引けない日（もう引いたあと）は、当たった数ではなく案内なので控えめにする */
+.gacha-result.done {
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: var(--muted);
+}
+
 .gift-list:not(:empty) {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
