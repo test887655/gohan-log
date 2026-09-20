@@ -3,7 +3,7 @@ import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
 import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
-import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner } from './points.js';
+import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner, setOtherPanel } from './points.js';
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
@@ -389,6 +389,70 @@ loginForm.addEventListener('submit', async (event) => {
 $('logout-button').addEventListener('click', () => {
   if (!confirm('ログアウトしますか？ 次に開くときは、メールアドレスとパスワードが必要です。')) return;
   supabase.auth.signOut();
+});
+
+// ---------- パスワードを変える ----------
+// ログイン中の人が、自分のパスワードだけを変えられる。
+// Supabaseのダッシュボードやメールのリンクを使わずに済むようにするためのもの
+const passwordPanel = $('password-panel');
+const passwordForm = $('password-form');
+const passwordNew = $('password-new');
+const passwordAgain = $('password-again');
+const passwordError = $('password-error');
+const passwordDone = $('password-done');
+const passwordSave = $('password-save');
+
+function openPasswordPanel() {
+  passwordForm.reset();
+  passwordError.hidden = true;
+  passwordDone.hidden = true;
+  passwordSave.disabled = false;
+  passwordSave.textContent = '保存';
+  passwordPanel.hidden = false;
+  setOtherPanel(true);
+  passwordNew.focus();
+}
+
+function closePasswordPanel() {
+  passwordPanel.hidden = true;
+  // 入力はそのままにしない。閉じたら消す
+  passwordForm.reset();
+  setOtherPanel(false);
+}
+
+$('password-open').addEventListener('click', openPasswordPanel);
+$('password-close').addEventListener('click', closePasswordPanel);
+$('password-cancel').addEventListener('click', closePasswordPanel);
+
+passwordForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  passwordError.hidden = true;
+  passwordDone.hidden = true;
+
+  const next = passwordNew.value;
+  if (next.length < 6) {
+    showError(passwordError, 'パスワードは6文字以上にしてください。');
+    return;
+  }
+  if (next !== passwordAgain.value) {
+    showError(passwordError, '2つの欄が同じになっていません。もう一度入れてください。');
+    return;
+  }
+
+  passwordSave.disabled = true;
+  passwordSave.textContent = '保存中…';
+  const { error } = await supabase.auth.updateUser({ password: next });
+  passwordSave.disabled = false;
+  passwordSave.textContent = '保存';
+
+  if (error) {
+    console.error(error);
+    showError(passwordError, '変えられませんでした。少し時間をおいて、もう一度お試しください。');
+    return;
+  }
+
+  passwordForm.reset();
+  passwordDone.hidden = false;
 });
 
 // ---------- 下に引っぱって更新 ----------

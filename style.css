@@ -555,6 +555,12 @@ legend {
 
 .link.danger { color: var(--error); }
 
+/* パスワードを変える。あいさつのすぐ下に、小さく置く */
+#password-open {
+  display: block;
+  margin: -4px 0 12px;
+}
+
 .door-icon {
   width: 26px;
   height: 26px;
@@ -1332,6 +1338,16 @@ button.place-main { cursor: pointer; }
   border-radius: var(--radius-input);
   background: var(--error-bg);
   color: var(--error);
+  font-size: 0.85rem;
+}
+
+/* うまくいったときの知らせ。エラーと同じ形で、色だけ落ち着いたものにする */
+.notice {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: var(--radius-input);
+  background: var(--like-tint);
+  color: var(--fg);
   font-size: 0.85rem;
 }
 

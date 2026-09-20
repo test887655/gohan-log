@@ -353,9 +353,17 @@ $('gift-close').addEventListener('click', () => { panel.hidden = true; lockScrol
 // iOSでは body に overflow: hidden を付けるだけでは止まらないので、
 // 位置ごと固定して、閉じたときに元の高さへ戻す
 let scrollBeforeLock = 0;
+// points.js 以外のポップアップ（パスワードを変える画面）を開いているかどうか
+let otherPanelOpen = false;
+
+// 他のファイルのポップアップも、同じやり方で後ろを止められるようにする
+export function setOtherPanel(open) {
+  otherPanelOpen = open;
+  lockScroll();
+}
 
 function lockScroll() {
-  const open = !panel.hidden || !gachaPanel.hidden || !news.hidden;
+  const open = otherPanelOpen || !panel.hidden || !gachaPanel.hidden || !news.hidden;
   const locked = document.body.classList.contains('modal-open');
   if (open === locked) return;
 
