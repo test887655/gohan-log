@@ -517,9 +517,16 @@ async function handleSession(session) {
 
   await loadPartners();
 
-  await loadPoints(currentUser, displayNames, activePartner, partnerIds, setPartner);
+  // ポイントや吹き出しの丸でつまずいても、ごはん記録は必ず出す。
+  // ここで止まると、投稿も日付も出ない真っ白な画面になってしまう
+  try {
+    await loadPoints(currentUser, displayNames, activePartner, partnerIds, setPartner);
+  } catch (error) { console.error(error); }
+
   // 相手からの新しい書き込みがあれば、冷蔵庫に小さな丸を出す
-  await refreshChatDot(currentUser.id, partnerIds);
+  try {
+    await refreshChatDot(currentUser.id, partnerIds);
+  } catch (error) { console.error(error); }
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();

@@ -25,7 +25,15 @@ const GACHA_PRIZES = [
   { points: 100, weight: 1, face: '💎' }, // 大当たり。100回に1回くらい
 ];
 
-const $ = (id) => document.getElementById(id);
+// 画面の部品を取る。GitHub Pages では index.html だけ古いものが届くことがあり、
+// 新しく足した部品が null になってポイントの読み込みごと止まってしまう。
+// 見つからないときは、どこにも出ない入れ物を返して先へ進める
+const $ = (id) => {
+  const found = document.getElementById(id);
+  if (found) return found;
+  console.warn(`${id} が見つかりません（index.html が古いのかもしれません）`);
+  return document.createElement('div');
+};
 
 const pointButton = $('point-button');
 const pointTotal = $('point-total');
