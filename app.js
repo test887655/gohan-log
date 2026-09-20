@@ -200,9 +200,28 @@ async function reloadActiveView() {
 
 const partnerPicker = $('partner-picker');
 
-// 自分と、いま選んでいる相手。タイムライン・アルバム・お店はこの2人ぶんだけ読む
+// 同じ輪にいる人たちは、ごはん記録をまとめて並べる。
+// partners は自分の行しか読めず「誰と誰が組んでいるか」は分からないので、ここに表示名で持つ。
+// 人を足すときは、その人が入る輪にも名前を足すこと
+const CIRCLES = [
+  ['eri', 'hana', 'mihoko'],
+  ['eri', 'minami'],
+];
+
+// 自分と、いま選んでいる相手。同じ輪にほかの人がいれば、その人のぶんも一緒に出す
+// （eri が hana を選ぶと、mihoko のぶんも同じタイムラインに並ぶ）。
+// タイムライン・アルバム・お店・いいねは、ここで返す人のぶんだけ読む
 function sharedIds() {
-  return activePartner ? [currentUser.id, activePartner] : [currentUser.id];
+  if (!activePartner) return [currentUser.id];
+
+  const myName = displayNames.get(currentUser.id);
+  const partnerName = displayNames.get(activePartner);
+  const circle = CIRCLES.find((names) => names.includes(myName) && names.includes(partnerName));
+  if (!circle) return [currentUser.id, activePartner];
+
+  // 名前が輪に入っていても、実際に組んでいない人のぶんは読めないので混ぜない
+  const others = partnerIds.filter((id) => circle.includes(displayNames.get(id)));
+  return [currentUser.id, ...new Set([activePartner, ...others])];
 }
 
 async function loadPartners() {
