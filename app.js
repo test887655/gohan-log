@@ -48,6 +48,7 @@ const REACTIONS = [
 
 const $ = (id) => document.getElementById(id);
 
+const bootScreen = $('screen-boot');
 const loginScreen = $('screen-login');
 const appScreen = $('screen-app');
 const loginForm = $('login-form');
@@ -533,10 +534,24 @@ try {
   if (['meals', 'ingredients', 'favorites', 'album', 'places', 'chat'].includes(view)) showView(view);
 } catch (error) { /* 使えないときは、ごはんの画面のまま */ }
 
+// iOSは、しばらく使わないと端末に覚えたログインを消してしまうことがある。
+// 消さないでほしいと先に頼んでおく（対応していない端末では何も起きない）
+try {
+  navigator.storage?.persist?.();
+} catch (error) { /* 使えなくてもログインはできる */ }
+
 supabase.auth.onAuthStateChange((_event, session) => {
   // コールバック内で直接awaitすると固まることがあるため、処理を外に出す
   setTimeout(() => handleSession(session), 0);
 });
+
+// 覚えているかの返事が来ないときでも、待たせたままにしない
+const bootTimer = setTimeout(() => {
+  if (!currentUser) {
+    bootScreen.hidden = true;
+    loginScreen.hidden = false;
+  }
+}, 8000);
 
 // 画面に戻ってきたら、切れかけのログインと期限つき写真URLを作り直す。
 // これがないと、開きっぱなしのまま1時間経ったときに
@@ -546,11 +561,17 @@ document.addEventListener('visibilitychange', () => {
 });
 
 async function refreshSession() {
-  const { data } = await supabase.auth.getSession();
+  const { data, error } = await supabase.auth.getSession();
+  // 圏外で延ばせなかっただけのときは、ログイン画面に戻さない。
+  // 覚えているぶんは端末に残っているので、つながればそのまま続けられる
+  if (error || (!data.session && !navigator.onLine)) return;
   await handleSession(data.session);
 }
 
 async function handleSession(session) {
+  clearTimeout(bootTimer);
+  bootScreen.hidden = true;
+
   if (!session) {
     currentUser = null;
     appScreen.hidden = true;
