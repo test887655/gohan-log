@@ -372,7 +372,10 @@ gachaDraw.addEventListener('click', async () => {
   if (error && error.code === '23505') {
     claimedToday.add('gacha');
     await refreshTotal();
-    showGacha();
+    gachaDraw.disabled = true;
+    gachaDraw.textContent = '今日はもう引きました';
+    gachaResult.textContent = '今日のぶんは、もう引いてあります。';
+    gachaResult.classList.add('done');
     return;
   }
 
