@@ -129,6 +129,47 @@
   }
 }
 
+/* どうぶつえん。クリーム色の地に、動物の絵を散らす。絵は images/zoo-*.png（背景を抜いてある） */
+:root[data-theme="zoo"] {
+  --bg: #faf5ec;
+  --card: #ffffff;
+  --fg: #46392f;
+  --muted: #7d6d5f;
+  --accent: #a3764c;
+  --like: #e9707f;
+  --recipe: #9585cf;
+  --star: #e0a236;
+  --yummy: #5fa26a;
+  --border: #e8dccb;
+
+  --accent-tint: #f6eee3;
+  --like-tint: #fdeff1;
+  --recipe-tint: #f1eefa;
+  --star-tint: #fdf3e1;
+  --yummy-tint: #eaf4ea;
+
+  --radius-card: 20px;
+  --radius-input: 14px;
+  --card-shadow: 0 3px 14px rgba(163, 118, 76, 0.12);
+  /* 水族館と同じ考え方。スマホでは写真のカードが幅いっぱいに並ぶので、
+     必ず空いている左右のふち（20px）にだけ、小さな動物を縦に並べる */
+  --page-pattern: url("images/zoo-left.png"), url("images/zoo-right.png");
+  --page-pattern-size: 20px 480px, 20px 480px;
+  --page-pattern-position: left 0 top 0, right 0 top 240px;
+  --page-pattern-repeat: repeat-y, repeat-y;
+}
+
+/* 広い画面ではカードの外が広く空くので、動物を全体に散らす */
+@media (min-width: 481px) {
+  :root[data-theme="zoo"] {
+    /* タイトルのすぐ後ろにぞうが来ないよう、少しずらして敷く */
+    --page-pattern: url("images/zoo-bg.png");
+    --page-pattern-size: 400px 400px;
+    --page-pattern-position: 200px 0;
+    --page-pattern-repeat: repeat;
+  }
+}
+
 /* ダーク。夜に見てまぶしくないよう、真っ黒ではなく少し温かみのある暗さにする */
 :root[data-theme="dark"] {
   --bg: #1a1a1c;
@@ -205,90 +246,144 @@ body {
 
 /* 文字の高さの真ん中に合わせる。
    baseline だと文字より上に浮いて見えてしまうため、flex で中央ぞろえにする */
-/* 水族館ではお花の代わりに、タイトルの横へクジラを出す */
-.sea-title { display: none; }
+/* 水族館ではお花の代わりに、タイトルの横へクジラを出す。どうぶつえんはぞう */
+.sea-title,
+.zoo-title { display: none; }
 
-:root[data-theme="aquarium"] .sea-title {
+:root[data-theme="aquarium"] .sea-title,
+:root[data-theme="zoo"] .zoo-title {
   display: block;
-  width: 1.55em;
   height: auto;
   flex: none;
 }
 
-/* 水族館だけ、冷蔵庫・吹き出しと「きせかえ」のあいだの空きに生き物を泳がせる */
+:root[data-theme="aquarium"] .sea-title { width: 1.55em; }
+/* ぞうは横に広いぶん、同じ幅だと小さく見えるので少し大きくする */
+:root[data-theme="zoo"] .zoo-title { width: 1.9em; }
+
+/* 水族館・どうぶつえんだけ、冷蔵庫・吹き出しと「きせかえ」のあいだの空きに生き物を出す */
 .toolbar-deco { display: none; }
 
-:root[data-theme="aquarium"] .toolbar-deco {
+:root[data-theme="aquarium"] .toolbar-deco,
+:root[data-theme="zoo"] .toolbar-deco {
   display: block;
   flex: 1 1 0;
   align-self: stretch;
   min-width: 0;
   min-height: 48px;
-  background: url("images/aquarium-toolbar.png") center / auto 48px no-repeat;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: auto 48px;
 }
 
-/* タイトルとログアウトのあいだの空きにも、イルカと小さな魚 */
+:root[data-theme="aquarium"] .toolbar-deco { background-image: url("images/aquarium-toolbar.png"); }
+:root[data-theme="zoo"] .toolbar-deco { background-image: url("images/zoo-toolbar.png"); }
+
+/* タイトルとログアウトのあいだの空きにも（水族館はイルカ、どうぶつえんはキリン） */
 .header-deco { display: none; }
 
-:root[data-theme="aquarium"] .header-deco {
+:root[data-theme="aquarium"] .header-deco,
+:root[data-theme="zoo"] .header-deco {
   display: block;
   flex: 1 1 0;
   align-self: stretch;
   min-width: 0;
-  background: url("images/aquarium-header.png") center / auto 44px no-repeat;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: auto 44px;
 }
 
-/* 「◯◯さんとして記録中」の右（きせかえの下）の空きに、アザラシと魚。
+:root[data-theme="aquarium"] .header-deco { background-image: url("images/aquarium-header.png"); }
+:root[data-theme="zoo"] .header-deco { background-image: url("images/zoo-header.png"); }
+
+/* 「◯◯さんとして記録中」の右（きせかえの下）の空きに、アザラシと魚
+   （どうぶつえんはうさぎとミーアキャット）。
    上下に少しはみ出させて、行の高さは変えない */
-:root[data-theme="aquarium"] #greeting {
+:root[data-theme="aquarium"] #greeting,
+:root[data-theme="zoo"] #greeting {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-:root[data-theme="aquarium"] #greeting::after {
+:root[data-theme="aquarium"] #greeting::after,
+:root[data-theme="zoo"] #greeting::after {
   content: "";
   flex: 1 1 0;
   min-width: 0;
   height: 34px;
   margin: -8px 0;
-  background: url("images/aquarium-greeting.png") right center / auto 34px no-repeat;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: auto 34px;
 }
+
+:root[data-theme="aquarium"] #greeting::after { background-image: url("images/aquarium-greeting.png"); }
+:root[data-theme="zoo"] #greeting::after { background-image: url("images/zoo-greeting.png"); }
 
 /* 「記録する」と週の並びのあいだ、カードとカードのすきまにも小さな生き物を置く。
    すきまの高さ（28px・20px）に収まる大きさにしてあるので、カードには重ならない */
 :root[data-theme="aquarium"] .week-nav,
 :root[data-theme="aquarium"] #timeline > .card + .card,
-:root[data-theme="aquarium"] #favorite-list > .card + .card {
+:root[data-theme="aquarium"] #favorite-list > .card + .card,
+:root[data-theme="zoo"] .week-nav,
+:root[data-theme="zoo"] #timeline > .card + .card,
+:root[data-theme="zoo"] #favorite-list > .card + .card {
   position: relative;
 }
 
 :root[data-theme="aquarium"] .week-nav::before,
 :root[data-theme="aquarium"] #timeline > .card + .card::before,
-:root[data-theme="aquarium"] #favorite-list > .card + .card::before {
+:root[data-theme="aquarium"] #favorite-list > .card + .card::before,
+:root[data-theme="zoo"] .week-nav::before,
+:root[data-theme="zoo"] #timeline > .card + .card::before,
+:root[data-theme="zoo"] #favorite-list > .card + .card::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   pointer-events: none;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-:root[data-theme="aquarium"] .week-nav::before {
+:root[data-theme="aquarium"] .week-nav::before,
+:root[data-theme="zoo"] .week-nav::before {
   top: -28px;
   height: 28px;
-  background: url("images/aquarium-gap.png") center / auto 26px no-repeat;
+  background-size: auto 26px;
 }
 
 :root[data-theme="aquarium"] #timeline > .card + .card::before,
-:root[data-theme="aquarium"] #favorite-list > .card + .card::before {
+:root[data-theme="aquarium"] #favorite-list > .card + .card::before,
+:root[data-theme="zoo"] #timeline > .card + .card::before,
+:root[data-theme="zoo"] #favorite-list > .card + .card::before {
   top: -20px;
   height: 20px;
-  background: url("images/aquarium-gap-a.png") center / auto 18px no-repeat;
+  background-size: auto 18px;
+}
+
+:root[data-theme="aquarium"] .week-nav::before { background-image: url("images/aquarium-gap.png"); }
+:root[data-theme="zoo"] .week-nav::before { background-image: url("images/zoo-gap.png"); }
+
+:root[data-theme="aquarium"] #timeline > .card + .card::before,
+:root[data-theme="aquarium"] #favorite-list > .card + .card::before {
+  background-image: url("images/aquarium-gap-a.png");
+}
+
+:root[data-theme="zoo"] #timeline > .card + .card::before,
+:root[data-theme="zoo"] #favorite-list > .card + .card::before {
+  background-image: url("images/zoo-gap-a.png");
 }
 
 :root[data-theme="aquarium"] #timeline > .card:nth-child(odd)::before,
 :root[data-theme="aquarium"] #favorite-list > .card:nth-child(odd)::before {
   background-image: url("images/aquarium-gap-b.png");
+}
+
+:root[data-theme="zoo"] #timeline > .card:nth-child(odd)::before,
+:root[data-theme="zoo"] #favorite-list > .card:nth-child(odd)::before {
+  background-image: url("images/zoo-gap-b.png");
 }
 
 .flower-title {

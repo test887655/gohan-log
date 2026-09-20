@@ -20,7 +20,7 @@
   // 画面が出る前に見た目を決める。あとから当てるとチカッと切り替わってしまう
   try {
     const saved = localStorage.getItem('theme');
-    if (saved === 'cute' || saved === 'adult' || saved === 'aquarium' || saved === 'dark') {
+    if (saved === 'cute' || saved === 'adult' || saved === 'aquarium' || saved === 'zoo' || saved === 'dark') {
       document.documentElement.dataset.theme = saved;
     }
   } catch (error) { /* プライベートブラウズなどで使えない場合は既定の見た目 */ }
@@ -188,7 +188,7 @@
       <!-- タイトルがごはんの画面へ戻るボタン。どの画面からでも押せる -->
       <h1><button type="button" id="home-button" class="title-button"
                   aria-label="ごはん記録に戻る" title="ごはん記録に戻る">
-        <svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg><img class="sea-title" src="images/whale.png" alt="">ごはん記録</button></h1>
+        <svg class="flower flower-title" aria-hidden="true"><use href="#flower"/></svg><img class="sea-title" src="images/whale.png" alt=""><img class="zoo-title" src="images/elephant.png" alt="">ごはん記録</button></h1>
       <button type="button" id="point-button" class="point-button"
               aria-label="プレゼントを見る" title="プレゼント" hidden>
         <span id="point-total">0</span>
@@ -236,6 +236,7 @@
       <button type="button" class="theme-option" data-theme="adult">大人</button>
       <button type="button" class="theme-option" data-theme="cute">かわいい</button>
       <button type="button" class="theme-option" data-theme="aquarium">水族館</button>
+      <button type="button" class="theme-option" data-theme="zoo">どうぶつえん</button>
       <button type="button" class="theme-option" data-theme="dark">ダーク</button>
     </div>
   </div>
