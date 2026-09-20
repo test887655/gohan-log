@@ -35,6 +35,7 @@ const toast = $('point-toast');
 
 const panel = $('gift-panel');
 const giftPoints = $('gift-points');
+const giftPartnerPicker = $('gift-partner-picker');
 const partnerTitle = $('partner-gift-title');
 const myTitle = $('my-gift-title');
 const partnerList = $('partner-gifts');
@@ -66,6 +67,8 @@ const newsText = $('gift-news-text');
 
 let me = null;
 let partner = null; // { id, name }
+let giftPartnerIds = []; // 組んでいる相手みんな（プレゼントの画面で切り替えるため）
+let pickPartner = null; // 相手を変えるとき app.js に知らせる
 let names = new Map(); // user_id -> 表示名
 let total = 0;
 let pending = null; // まだ取っていないキラキラ { day, slot, bonus }
@@ -100,9 +103,12 @@ function isBonusDay(day) {
 
 // ---------- 読み込み ----------
 
-export async function loadPoints(user, displayNames, partnerId) {
+export async function loadPoints(user, displayNames, partnerId, partnerIds = [], onPick = null) {
   me = user;
   names = displayNames;
+  giftPartnerIds = partnerIds;
+  pickPartner = onPick;
+  renderGiftPartners();
   setGiftPartner(partnerId);
 
   pointButton.hidden = false;
@@ -117,6 +123,9 @@ export async function loadPoints(user, displayNames, partnerId) {
 // 用意するもの・もらえるものの両方が、選んだ相手のぶんに変わる
 export function setGiftPartner(partnerId) {
   partner = partnerId ? { id: partnerId, name: names.get(partnerId) ?? '相手' } : null;
+  for (const button of giftPartnerPicker.querySelectorAll('.partner-option')) {
+    button.setAttribute('aria-pressed', String(button.dataset.partner === partnerId));
+  }
   partnerTitle.textContent = partner ? `${partner.name} さんからもらえるもの` : 'もらえるもの';
   myTitle.textContent = partner ? `${partner.name} さんに用意するもの` : '自分が用意するもの';
   if (me && !panel.hidden) loadGiftItems();
@@ -125,6 +134,9 @@ export function setGiftPartner(partnerId) {
 export function clearPoints() {
   me = null;
   partner = null;
+  giftPartnerIds = [];
+  giftPartnerPicker.replaceChildren();
+  giftPartnerPicker.hidden = true;
   pending = null;
   claimedToday = new Set();
   total = 0;
@@ -301,6 +313,30 @@ export async function checkMealBonus(when = new Date()) {
 }
 
 // ---------- プレゼント ----------
+
+// 相手が2人以上いる人だけ。ヘッダーの切り替えはポップアップの後ろに隠れて押せないので、
+// 「もらえるもの／用意するもの」を誰のぶんにするかは、この画面の中で選ぶ
+function renderGiftPartners() {
+  giftPartnerPicker.replaceChildren();
+  giftPartnerPicker.hidden = giftPartnerIds.length < 2;
+  if (giftPartnerPicker.hidden) return;
+
+  const label = document.createElement('span');
+  label.className = 'partner-label';
+  label.textContent = '相手';
+  giftPartnerPicker.append(label);
+
+  for (const id of giftPartnerIds) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'theme-option partner-option';
+    button.dataset.partner = id;
+    button.setAttribute('aria-pressed', String(id === partner?.id));
+    button.textContent = names.get(id) ?? '相手';
+    button.addEventListener('click', () => pickPartner?.(id));
+    giftPartnerPicker.append(button);
+  }
+}
 
 pointButton.addEventListener('click', openPanel);
 $('gift-close').addEventListener('click', () => { panel.hidden = true; lockScroll(); });

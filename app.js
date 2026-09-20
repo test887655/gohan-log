@@ -168,6 +168,7 @@ document.addEventListener('ask-ingredient', (event) => {
 
 function showView(view) {
   activeView = view;
+  updatePartnerPicker();
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
   // 開いている画面のアイコンに色を付ける（冷蔵庫と吹き出しで同じ見た目）
   chatToggle.setAttribute('aria-pressed', String(view === 'chat'));
@@ -258,11 +259,27 @@ function biggestCirclePartner() {
   return best;
 }
 
-// 相手が2人以上いるとき（eri）だけ、切り替えボタンを出す
+// どの輪の人かを返す。同じ輪の相手しかいない人（hana・mihoko）は、
+// 切り替えてもごはん記録の中身が変わらない
+function circleOf(partnerId) {
+  const myName = displayNames.get(currentUser?.id);
+  const name = displayNames.get(partnerId);
+  return CIRCLES.findIndex((names) => names.includes(myName) && names.includes(name));
+}
+
+// ごはんの画面に切り替えを出すのは、輪が2つ以上ある人（eri）だけ。
+// hana・mihoko は切り替えても同じ3人ぶんなので、ホームには出さない。
+// そうだんは宛先が変わるので、その画面ではみんなに出す
+function updatePartnerPicker() {
+  const manyCircles = new Set(partnerIds.map(circleOf)).size > 1;
+  partnerPicker.hidden = partnerIds.length < 2 || (!manyCircles && activeView !== 'chat');
+}
+
+// 相手が2人以上いる人だけ、切り替えボタンを作る
 function renderPartnerPicker() {
   partnerPicker.replaceChildren();
-  partnerPicker.hidden = partnerIds.length < 2;
-  if (partnerPicker.hidden) return;
+  updatePartnerPicker();
+  if (partnerIds.length < 2) return;
 
   const label = document.createElement('span');
   label.className = 'partner-label';
@@ -500,7 +517,7 @@ async function handleSession(session) {
 
   await loadPartners();
 
-  await loadPoints(currentUser, displayNames, activePartner);
+  await loadPoints(currentUser, displayNames, activePartner, partnerIds, setPartner);
   // 相手からの新しい書き込みがあれば、冷蔵庫に小さな丸を出す
   await refreshChatDot(currentUser.id, partnerIds);
 
