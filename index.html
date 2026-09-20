@@ -94,6 +94,26 @@
   </symbol>
 
   <!-- 吹き出し。相手に聞くボタンと、お知らせの印に使う -->
+  <symbol id="gachapon" viewBox="0 0 24 24">
+    <!-- 上のガラス玉。ここを大きくとらないと、小さくしたときガチャに見えない -->
+    <path d="M12 1.6a7.6 7.6 0 017.6 7.6v4.3H4.4V9.2A7.6 7.6 0 0112 1.6z" fill="#d3e9f3"/>
+    <!-- 中のカプセル -->
+    <g>
+      <circle cx="9" cy="8.2" r="2.1" fill="#f2b23c"/>
+      <circle cx="14.4" cy="7" r="1.9" fill="#7fc98a"/>
+      <circle cx="14.4" cy="11.3" r="2.1" fill="#f08bb0"/>
+      <circle cx="9.5" cy="12" r="1.8" fill="#8bb8ea"/>
+    </g>
+    <!-- 下の台。まわすつまみと、カプセルの出る口 -->
+    <path d="M4.4 13.5h15.2v6.9a1.7 1.7 0 01-1.7 1.7H6.1a1.7 1.7 0 01-1.7-1.7z" fill="#e2786a"/>
+    <circle cx="12" cy="16.4" r="1.5" fill="#fdfdfb" stroke="#a8544a" stroke-width=".9"/>
+    <rect x="8.6" y="18.9" width="6.8" height="2.4" rx=".9" fill="#a8544a"/>
+    <!-- 外枠 -->
+    <path d="M12 1.6a7.6 7.6 0 017.6 7.6v11.2a1.7 1.7 0 01-1.7 1.7H6.1a1.7 1.7 0 01-1.7-1.7V9.2A7.6 7.6 0 0112 1.6z"
+          fill="none" stroke="#a8544a" stroke-width="1.1"/>
+    <path d="M4.4 13.5h15.2" stroke="#a8544a" stroke-width="1.1"/>
+  </symbol>
+
   <symbol id="bubble" viewBox="0 0 24 24">
     <path d="M4.4 3.8h15.2a2 2 0 012 2v8.8a2 2 0 01-2 2h-9.3l-4.6 3.4.5-3.4h-1.8a2 2 0 01-2-2V5.8a2 2 0 012-2z"
           fill="#8fc4d4" stroke="#54909f" stroke-width="1" stroke-linejoin="round"/>
@@ -194,6 +214,12 @@
               aria-label="そうだん" title="そうだん">
         <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
         <span id="chat-dot" class="dot" hidden></span>
+      </button>
+      <!-- ガチャ。プレゼントの中ではなく、ここから直接開ける。
+           出せる人（points.js の GACHA_USERS）以外には出さない -->
+      <button type="button" id="gacha-open" class="icon-button round" aria-pressed="false"
+              aria-label="ガチャ" title="ガチャ" hidden>
+        <svg class="gacha-icon" aria-hidden="true"><use href="#gachapon"/></svg>
       </button>
     </div>
 
@@ -497,12 +523,6 @@
       </div>
       <p class="hint"><strong id="gift-points">0</strong> ポイント持っています</p>
 
-      <!-- ガチャ。1日1回だけ引ける。出せる人は決まっている（points.js の GACHA_USERS） -->
-      <div id="gacha" class="gacha" hidden>
-        <button type="button" id="gacha-draw" class="primary block">🎁 今日のガチャを引く</button>
-        <p id="gacha-result" class="gacha-result" aria-live="polite"></p>
-      </div>
-
       <h3 id="partner-gift-title">もらえるもの</h3>
       <div id="partner-gifts" class="gift-list"></div>
       <p id="partner-gifts-empty" class="hint" hidden>相手がまだ用意していません。</p>
@@ -529,6 +549,32 @@
         </div>
         <p id="gift-error" class="error" hidden></p>
       </form>
+    </div>
+  </div>
+
+  <!-- ガチャ。1日1回だけ引ける。広く見せたいので、ガチャだけの画面にしてある -->
+  <div id="gacha-panel" class="overlay" hidden>
+    <div class="sheet gacha-sheet">
+      <div class="view-head">
+        <h2>ガチャ</h2>
+        <button type="button" id="gacha-close" class="link">閉じる</button>
+      </div>
+      <p class="hint"><strong id="gacha-points">0</strong> ポイント持っています</p>
+
+      <div id="gacha" class="gacha">
+        <div class="gacha-stage">
+          <div id="gacha-box" class="gacha-box" aria-hidden="true">🎁</div>
+          <div id="gacha-burst" class="gacha-burst" aria-hidden="true"></div>
+        </div>
+        <button type="button" id="gacha-draw" class="primary block">🎁 今日のガチャを引く</button>
+        <p id="gacha-result" class="gacha-result" aria-live="polite"><span id="gacha-result-text"></span></p>
+        <p id="gacha-note" class="gacha-note">また明日♪</p>
+      </div>
+
+      <h4 class="gacha-legend-title">出るもの（ポイント）</h4>
+      <!-- 当たりの絵と数は points.js の GACHA_PRIZES から作る -->
+      <ul id="gacha-legend" class="gacha-legend"></ul>
+      <p class="hint">1日1回引けます。ポイントはプレゼントと交換できます。</p>
     </div>
   </div>
 

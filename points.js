@@ -15,12 +15,14 @@ const SPARKLE_SLOTS = ['morning', 'noon', 'night'];
 // ガチャを出す人（表示名で決める）。ほかの人の画面には出さない
 const GACHA_USERS = ['eri', 'hana'];
 // 出るポイントと、その出やすさ（重み）。合計で割った割合で当たる
+// face は止まったときに出る絵。回しているあいだもこの並びを順に見せるので、
+// ルーレットが当たりのところで止まったように見える
 const GACHA_PRIZES = [
-  { points: 1, weight: 35 },
-  { points: 3, weight: 30 },
-  { points: 5, weight: 25 },
-  { points: 10, weight: 9 },
-  { points: 100, weight: 1 }, // 大当たり。100回に1回くらい
+  { points: 1, weight: 35, face: '🍬' },
+  { points: 3, weight: 30, face: '🍪' },
+  { points: 5, weight: 25, face: '🍰' },
+  { points: 10, weight: 9, face: '👑' },
+  { points: 100, weight: 1, face: '💎' }, // 大当たり。100回に1回くらい
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -47,9 +49,17 @@ const giftCost = $('gift-cost');
 const giftSave = $('gift-save');
 const giftError = $('gift-error');
 
+const gachaOpen = $('gacha-open');
+const gachaPanel = $('gacha-panel');
+const gachaPoints = $('gacha-points');
+const gachaLegend = $('gacha-legend');
 const gachaBox = $('gacha');
 const gachaDraw = $('gacha-draw');
 const gachaResult = $('gacha-result');
+const gachaGift = $('gacha-box');
+const gachaBurst = $('gacha-burst');
+const gachaNote = $('gacha-note');
+const gachaText = $('gacha-result-text');
 
 const news = $('gift-news');
 const newsText = $('gift-news-text');
@@ -121,6 +131,8 @@ export function clearPoints() {
   pointButton.hidden = true;
   sparkle.hidden = true;
   panel.hidden = true;
+  gachaPanel.hidden = true;
+  gachaOpen.hidden = true;
   news.hidden = true;
   lockScroll();
 }
@@ -144,6 +156,7 @@ function setTotal(value) {
   total = value;
   pointTotal.textContent = String(value);
   giftPoints.textContent = String(value);
+  gachaPoints.textContent = String(value);
 }
 
 // ---------- キラキラ ----------
@@ -169,6 +182,7 @@ async function refreshSparkle() {
     : { ...now, bonus: isBonusDay(now.day) && sparkles.length === 0 };
 
   showSparkle();
+  showGacha();
 }
 
 function showSparkle() {
@@ -297,7 +311,7 @@ $('gift-close').addEventListener('click', () => { panel.hidden = true; lockScrol
 let scrollBeforeLock = 0;
 
 function lockScroll() {
-  const open = !panel.hidden || !news.hidden;
+  const open = !panel.hidden || !gachaPanel.hidden || !news.hidden;
   const locked = document.body.classList.contains('modal-open');
   if (open === locked) return;
 
@@ -316,24 +330,93 @@ async function openPanel() {
   panel.hidden = false;
   lockScroll();
   closeGiftForm();
-  showGacha();
   await loadGiftItems();
 }
 
 // ---------- ガチャ ----------
 
+gachaOpen.addEventListener('click', () => {
+  gachaPanel.hidden = false;
+  gachaOpen.setAttribute('aria-pressed', 'true');
+  showGacha();
+  lockScroll();
+});
+
+$('gacha-close').addEventListener('click', () => {
+  gachaPanel.hidden = true;
+  gachaOpen.setAttribute('aria-pressed', 'false');
+  lockScroll();
+});
+
+// 出るものの一覧。当たりの表から作るので、中身を変えるのは GACHA_PRIZES だけでよい
+function showLegend() {
+  if (gachaLegend.children.length) return;
+  for (const prize of GACHA_PRIZES) {
+    const row = document.createElement('li');
+    const face = document.createElement('span');
+    face.className = 'face';
+    face.textContent = prize.face;
+    row.append(face, String(prize.points));
+    row.setAttribute('aria-label', `${prize.points} ポイント`);
+    gachaLegend.appendChild(row);
+  }
+}
+
 // 今日もう引いたかは、ポイントの記録（slot が 'gacha' の行）で分かる。
 // 同じ日に2回入らないよう、表でも (user_id, claim_day, slot) が一意になっている
 function showGacha() {
   const canPlay = GACHA_USERS.includes(names.get(me?.id) ?? '');
-  gachaBox.hidden = !canPlay;
-  if (!canPlay) return;
+  gachaOpen.hidden = !canPlay;
+  if (!canPlay) {
+    gachaPanel.hidden = true;
+    return;
+  }
+  showLegend();
 
   const done = claimedToday.has('gacha');
   gachaDraw.disabled = done;
-  gachaDraw.textContent = done ? '今日はもう引きました' : '🎁 今日のガチャを引く';
-  gachaResult.textContent = done ? 'また明日引けます。' : '';
+  gachaDraw.textContent = done ? 'おしまい' : '🎁 今日のガチャを引く';
+  gachaText.textContent = done ? 'また明日♪' : '';
   gachaResult.classList.toggle('done', done);
+  resetGachaEffect();
+}
+
+// 演出を最初の状態に戻す（閉じて開き直したときに残らないように）
+function resetGachaEffect() {
+  gachaGift.textContent = '🎁';
+  gachaGift.className = 'gacha-box';
+  gachaBurst.textContent = '';
+  gachaNote.classList.remove('show');
+  gachaBox.classList.remove('jackpot');
+  gachaResult.classList.remove('win', 'jackpot');
+}
+
+const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
+
+// 箱からキラキラをはじけさせる。当たりが大きいほど数も距離も増やす
+function burst(big) {
+  const colors = ['#ffd45e', '#ff9ec0', '#7ec8e3', '#9be38f', '#ffb066'];
+  const count = big ? 30 : 14;
+  gachaBurst.textContent = '';
+  for (let i = 0; i < count; i += 1) {
+    const spark = document.createElement('span');
+    spark.className = 'spark';
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+    const distance = (big ? 82 : 58) + Math.random() * (big ? 48 : 28);
+    spark.style.setProperty('--x', `${Math.round(Math.cos(angle) * distance)}px`);
+    spark.style.setProperty('--y', `${Math.round(Math.sin(angle) * distance)}px`);
+    spark.style.animationDuration = `${(big ? 900 : 650) + Math.round(Math.random() * 350)}ms`;
+    if (big && i % 4 === 0) {
+      // 大当たりのときだけ、粒にまじってクラッカーも飛ばす
+      spark.classList.add('emoji');
+      spark.textContent = i % 8 === 0 ? '🎉' : '✨';
+    } else {
+      spark.style.background = colors[i % colors.length];
+      if (big) spark.classList.add('big');
+    }
+    gachaBurst.appendChild(spark);
+  }
+  setTimeout(() => { gachaBurst.textContent = ''; }, big ? 1800 : 1300);
 }
 
 function drawPrize() {
@@ -341,46 +424,55 @@ function drawPrize() {
   let hit = Math.random() * totalWeight;
   for (const prize of GACHA_PRIZES) {
     hit -= prize.weight;
-    if (hit < 0) return prize.points;
+    if (hit < 0) return prize;
   }
-  return GACHA_PRIZES[0].points;
+  return GACHA_PRIZES[0];
 }
 
 gachaDraw.addEventListener('click', async () => {
   gachaDraw.disabled = true;
+  resetGachaEffect();
   gachaResult.classList.remove('done');
+  gachaText.textContent = 'なにが出るかな…';
+  gachaResult.classList.add('done');
 
-  // 回っているように見せる。結果が出るまでのあいだだけ
-  const faces = ['🎁', '✨', '🍀', '🎀'];
+  // 当たりの絵をぐるぐる回す。すぐ結果が返っても、この間だけは必ず回す
+  const faces = GACHA_PRIZES.map((prize) => prize.face);
   let step = 0;
-  gachaResult.textContent = faces[0];
+  gachaGift.classList.add('spin');
   const spin = setInterval(() => {
     step += 1;
-    gachaResult.textContent = faces[step % faces.length];
-  }, 120);
+    gachaGift.textContent = faces[step % faces.length];
+  }, 110);
+  const startedAt = Date.now();
 
   const day = currentSlot().day;
-  const gained = drawPrize();
+  const prize = drawPrize();
+  const gained = prize.points;
   const { error } = await supabase.from('points').insert({
     kind: 'gacha', amount: gained, claim_day: day, slot: 'gacha',
   });
 
+  // 一瞬で終わると引いた気がしないので、1秒は回す
+  await sleep(Math.max(0, 1000 - (Date.now() - startedAt)));
   clearInterval(spin);
+  gachaGift.classList.remove('spin');
+  gachaGift.textContent = '🎁';
 
   // 23505 は、その日のぶんをもう引いてあるとき（別の端末で引いた場合など）
   if (error && error.code === '23505') {
     claimedToday.add('gacha');
     await refreshTotal();
     gachaDraw.disabled = true;
-    gachaDraw.textContent = '今日はもう引きました';
-    gachaResult.textContent = '今日のぶんは、もう引いてあります。';
+    gachaDraw.textContent = 'おしまい';
+    gachaText.textContent = '今日のぶんは、もう引いてあります。';
     gachaResult.classList.add('done');
     return;
   }
 
   if (error) {
     console.error(error);
-    gachaResult.textContent = '引けませんでした。開き直してから試してください。';
+    gachaText.textContent = '引けませんでした。開き直してから試してください。';
     gachaResult.classList.add('done');
     gachaDraw.disabled = false;
     return;
@@ -388,10 +480,34 @@ gachaDraw.addEventListener('click', async () => {
 
   claimedToday.add('gacha');
   setTotal(total + gained);
-  gachaDraw.textContent = '今日はもう引きました';
-  gachaResult.textContent = gained >= 100
-    ? `🎉 大当たり！ ${gained} ポイント`
-    : `＋${gained} ポイント`;
+
+  // だんだん遅くしてから当たりの絵で止める → キラキラ → 数字、の順に見せる
+  const big = gained >= 100;
+  for (const wait of [150, 210, 290, 380]) {
+    step += 1;
+    gachaGift.textContent = faces[step % faces.length];
+    await sleep(wait);
+  }
+  gachaGift.textContent = prize.face;
+  gachaGift.classList.add('pop');
+  burst(big);
+  if (big) gachaBox.classList.add('jackpot');
+  await sleep(260);
+  // ここで初めて「なにが出るかな…」と入れ替える
+  gachaResult.classList.remove('done');
+  if (big) {
+    // 1行に収まらず変なところで折り返すので、大当たりは2行に分けて出す
+    gachaText.textContent = '';
+    gachaText.append(
+      `${prize.face} 大当たり！`, document.createElement('br'), `${gained} ポイント`,
+    );
+  } else {
+    gachaText.textContent = `${prize.face} ＋${gained} ポイント`;
+  }
+  gachaResult.classList.add(big ? 'jackpot' : 'win');
+  // 当たりを見せてから、その日のぶんが終わったことを伝える
+  gachaDraw.textContent = 'おしまい';
+  gachaNote.classList.add('show');
 });
 
 async function loadGiftItems() {
