@@ -13,7 +13,7 @@ const THREE_MEALS = ['breakfast', 'lunch', 'dinner'];
 const SPARKLE_SLOTS = ['morning', 'noon', 'night'];
 
 // ガチャを出す人（表示名で決める）。ほかの人の画面には出さない
-const GACHA_USERS = ['eri', 'hana'];
+const GACHA_USERS = ['eri', 'hana', 'mihoko'];
 // 出るポイントと、その出やすさ（重み）。合計で割った割合で当たる
 // face は止まったときに出る絵。回しているあいだもこの並びを順に見せるので、
 // ルーレットが当たりのところで止まったように見える

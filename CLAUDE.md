@@ -12,16 +12,20 @@
 - 開発環境：Windows/PC + Claude Code
 - ホスティング：GitHub Pages
 - データ保存：Supabase（無料枠）。Auth・Database・Storage を使う
-- ユーザーは eri・hana・minami の3アカウント。新規登録は受け付けない（Supabase側でサインアップを無効化）。
+- ユーザーは eri・hana・minami・mihoko の4アカウント。新規登録は受け付けない（Supabase側でサインアップを無効化）。
   アカウントはダッシュボードの Authentication → Users から手で足す
 - 写真はSupabase Storageに保存。アップロード前にクライアント側で縮小（長辺1200px程度）して容量を抑える
 - 技術スタックはシンプルに。ビルド不要か最小限（例：素のHTML/JS、またはVite + 軽量フレームワーク）。GitHub Pagesで動くこと
 
 ## 共有ルール（重要）
-共有は「相手どうし（partners）」の組で決まる。eri は hana と minami の2人と組み、
-hana と minami は組まない（お互いに見えない）。
-- 自分の投稿は、組んでいる相手みんなに見える（eri の投稿は2人とも見える）
-- 相手が2人いる eri だけ、ヘッダーの「共有する相手」で切り替える。
+共有は「相手どうし（partners）」の組で決まる。
+- eri … hana・minami・mihoko の3人と組む
+- hana … eri・mihoko の2人と組む
+- mihoko … eri・hana の2人と組む
+- minami … eri だけと組む
+組んでいない人どうし（hana と minami、mihoko と minami）はお互いに見えない。
+- 自分の投稿は、組んでいる相手みんなに見える（eri の投稿は3人とも見える）
+- 相手が2人以上いる人（eri・hana・mihoko）は、ヘッダーの「共有する相手」で切り替える。
   変わるのは eri の画面にどちらの相手のぶんを出すかと、そうだんの宛先。
   選んだ相手は端末ごとに localStorage（partner:<自分のid>）へ覚える
 
@@ -127,7 +131,7 @@ SupabaseのRow Level Securityで実装する：
   出るのは 1（35%・🍬）3（30%・🍪）5（25%・🍰）10（9%・👑）100（1%・💎 大当たり）。
   絵は GACHA_PRIZES の face。画面の「出るもの」の一覧もこの表から作るので、
   中身を変えるときは GACHA_PRIZES だけ直せばよい。
-  出す人は points.js の GACHA_USERS（表示名で判定。今は eri と hana だけ。
+  出す人は points.js の GACHA_USERS（表示名で判定。今は eri・hana・mihoko。
   minami にはアイコンごと出さない）。
   1日1回は points の (user_id, claim_day, slot) の一意（points_one_per_slot_idx）で守る。
   kind も slot も 'gacha'。日の区切りはキラキラと同じ（朝5時）
@@ -162,7 +166,7 @@ SupabaseのRow Level Securityで実装する：
 - スタンプの右のゴミ箱で、そのそうだんをまとめて消せる（返事も一緒に消える）。
   出るのは自分が始めたそうだんだけ。狭い画面でも1行に収まるよう、
   スタンプのほうが縮む作りにしてある
-- 聞く相手は、そのとき選んでいる相手（eri 以外は相手が1人なので迷わない）。
+- 聞く相手は、そのとき選んでいる相手（minami は相手が1人なので迷わない）。
   一覧も選んでいる相手とのぶんだけ出す
 - 相手からの新しい書き込みがあると、冷蔵庫のアイコンに赤い丸が出る。
   eri は「共有する相手」のボタンにも、書き込みがあった相手のほうに丸が出る。
@@ -272,7 +276,8 @@ SupabaseのRow Level Securityで実装する：
 - 済：ポイントとプレゼント
 - 済：★お気に入り・アルバム・「おいしそう」・外食の記録（お店）
 - 済：そうだん（食材から相手に聞く・スタンプ・赤い丸のお知らせ）
-- 済：3人目（minami）の追加。共有の組（partners）と、eri の相手切り替え
+- 済：3人目（minami）・4人目（mihoko）の追加。共有の組（partners）と相手切り替え
+  （mihoko は eri と hana の2人と組む。2026-09-20 に追加）
 - 次：ステップ4（レシピ帳）。ただし手入力前提ではなく、ネットのレシピのURLを
   貼って取り込む形にしたいという希望あり（保留中）
 
@@ -280,7 +285,7 @@ SupabaseのRow Level Securityで実装する：
 - 公開URL：https://test887655.github.io/gohan-log/
 - リポジトリ：test887655/gohan-log（公開。無料プランではPages利用に公開が必須のため）
 - Supabaseプロジェクト：atvrunfaltnkbwhtpoue
-- アカウント：eri / hana / minami。新規登録・メール確認は無効化済み
+- アカウント：eri / hana / minami / mihoko。新規登録・メール確認は無効化済み
 - ローカル確認：`python -m http.server 5173`（Node.jsは未インストール）
 
 ### 決まったこと・注意点
