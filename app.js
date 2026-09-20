@@ -233,10 +233,29 @@ async function loadPartners() {
   let saved = null;
   try {
     saved = localStorage.getItem(`partner:${currentUser.id}`);
-  } catch (error) { /* 使えなくても、最初の相手になるだけ */ }
-  activePartner = partnerIds.includes(saved) ? saved : (partnerIds[0] ?? null);
+  } catch (error) { /* 使えなくても、いちばん人数の多い輪になるだけ */ }
+  activePartner = partnerIds.includes(saved) ? saved : biggestCirclePartner();
 
   renderPartnerPicker();
+}
+
+// 何も選んでいないときは、いちばん人数の多い輪の相手にする。
+// eri が開いたとき、切り替えなしで3人ぶん（eri・hana・mihoko）が出るようにするため
+function biggestCirclePartner() {
+  const myName = displayNames.get(currentUser.id);
+  let best = null;
+  let bestSize = 0;
+
+  for (const id of partnerIds) {
+    const name = displayNames.get(id);
+    const circle = CIRCLES.find((names) => names.includes(myName) && names.includes(name));
+    const size = circle ? circle.length : 2;
+    if (size > bestSize) {
+      best = id;
+      bestSize = size;
+    }
+  }
+  return best;
 }
 
 // 相手が2人以上いるとき（eri）だけ、切り替えボタンを出す
