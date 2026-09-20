@@ -16,12 +16,11 @@ const SPARKLE_SLOTS = ['morning', 'noon', 'night'];
 const GACHA_USERS = ['eri', 'hana'];
 // 出るポイントと、その出やすさ（重み）。合計で割った割合で当たる
 const GACHA_PRIZES = [
-  { points: 1, weight: 20 },
-  { points: 2, weight: 20 },
-  { points: 3, weight: 20 },
+  { points: 1, weight: 35 },
+  { points: 3, weight: 30 },
   { points: 5, weight: 25 },
-  { points: 10, weight: 10 },
-  { points: 30, weight: 5 }, // 大当たり
+  { points: 10, weight: 9 },
+  { points: 100, weight: 1 }, // 大当たり。100回に1回くらい
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -390,7 +389,7 @@ gachaDraw.addEventListener('click', async () => {
   claimedToday.add('gacha');
   setTotal(total + gained);
   gachaDraw.textContent = '今日はもう引きました';
-  gachaResult.textContent = gained >= 30
+  gachaResult.textContent = gained >= 100
     ? `🎉 大当たり！ ${gained} ポイント`
     : `＋${gained} ポイント`;
 });
