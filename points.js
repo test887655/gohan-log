@@ -107,6 +107,7 @@ export function clearPoints() {
   sparkle.hidden = true;
   panel.hidden = true;
   news.hidden = true;
+  lockScroll();
 }
 
 // 食材リストを開いているあいだはキラキラを出さない
@@ -273,10 +274,32 @@ export async function checkMealBonus(when = new Date()) {
 // ---------- プレゼント ----------
 
 pointButton.addEventListener('click', openPanel);
-$('gift-close').addEventListener('click', () => { panel.hidden = true; });
+$('gift-close').addEventListener('click', () => { panel.hidden = true; lockScroll(); });
+
+// ポップアップを開いているあいだは、後ろのごはん記録が動かないようにする。
+// iOSでは body に overflow: hidden を付けるだけでは止まらないので、
+// 位置ごと固定して、閉じたときに元の高さへ戻す
+let scrollBeforeLock = 0;
+
+function lockScroll() {
+  const open = !panel.hidden || !news.hidden;
+  const locked = document.body.classList.contains('modal-open');
+  if (open === locked) return;
+
+  if (open) {
+    scrollBeforeLock = window.scrollY;
+    document.body.style.top = `-${scrollBeforeLock}px`;
+    document.body.classList.add('modal-open');
+  } else {
+    document.body.classList.remove('modal-open');
+    document.body.style.top = '';
+    window.scrollTo(0, scrollBeforeLock);
+  }
+}
 
 async function openPanel() {
   panel.hidden = false;
+  lockScroll();
   closeGiftForm();
   await loadGiftItems();
 }
@@ -325,6 +348,8 @@ function giftRow(item) {
 // 相手が用意したもの。ポイントが足りていれば選べる
 function renderPartnerGift(item) {
   const row = giftRow(item);
+  // 自分が用意したものと見分けられるよう、相手のぶんには色を付ける
+  row.classList.add('theirs');
 
   const choose = document.createElement('button');
   choose.type = 'button';
@@ -490,10 +515,12 @@ async function showNews() {
     .map(([name, items]) => `${name} さんが ${items.join('')} を選びました`)
     .join('\n');
   news.hidden = false;
+  lockScroll();
 }
 
 $('gift-news-close').addEventListener('click', async () => {
   news.hidden = true;
+  lockScroll();
   if (unseen.length === 0) return;
 
   const ids = unseen.map((row) => row.id);
