@@ -103,10 +103,34 @@ function currentSlot(now = new Date()) {
   return { day: dayText(base), slot: 'night' };
 }
 
-// 3日に一度の星の日。2人とも同じ日になるよう、日付そのものから決める
-function isBonusDay(day) {
+// 数からでたらめに見える数を作る。同じ数からはいつも同じ結果になる
+function scramble(n) {
+  let x = Math.imul(n, 0x9e3779b1);
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x85ebca6b);
+  x ^= x >>> 13;
+  x = Math.imul(x, 0xc2b2ae35);
+  x ^= x >>> 16;
+  return x >>> 0;
+}
+
+// 星の時間帯を数えはじめる組（2026年9月はじめ）。ここから順に足していく
+const STAR_FIRST_BLOCK = 6899;
+
+// 星の日と、星が出る時間帯。3日ずつの組に分けて、その3日のうちどの日に出すかを
+// でたらめに決める（3日に1回のペースは守る）。
+// 時間帯は、前の星から1つか2つ進める。でたらめでも、前と同じ時間帯には続けて出ない。
+// 2人とも同じになるよう、日付そのものから決める。
+// 「その日の最初のひとつ」にすると、朝に開く人はいつも朝になってしまうため
+function bonusSlot(day) {
   const [year, month, date] = day.split('-').map(Number);
-  return Math.floor(Date.UTC(year, month - 1, date) / 86400000) % BONUS_EVERY === 0;
+  const n = Math.floor(Date.UTC(year, month - 1, date) / 86400000);
+  const block = Math.floor(n / BONUS_EVERY);
+  if (n % BONUS_EVERY !== scramble(block) % BONUS_EVERY) return null;
+
+  let index = 0;
+  for (let k = STAR_FIRST_BLOCK; k <= block; k++) index += 1 + ((scramble(k) >>> 8) % 2);
+  return SPARKLE_SLOTS[index % SPARKLE_SLOTS.length];
 }
 
 // ---------- 読み込み ----------
@@ -185,7 +209,7 @@ async function refreshSparkle() {
   const now = currentSlot();
 
   const { data, error } = await supabase
-    .from('points').select('slot').eq('claim_day', now.day);
+    .from('points').select('slot, kind').eq('claim_day', now.day);
 
   if (error) {
     console.error(error);
@@ -193,13 +217,15 @@ async function refreshSparkle() {
   }
 
   claimedToday = new Set(data.map((row) => row.slot));
-  // 3食そろったボーナスは数に入れない。入れると星が出なくなってしまう
-  const sparkles = SPARKLE_SLOTS.filter((slot) => claimedToday.has(slot));
 
-  pending = claimedToday.has(now.slot)
-    ? null
-    // 星の日は、その日の最初のひとつを星にする
-    : { ...now, bonus: isBonusDay(now.day) && sparkles.length === 0 };
+  // 星は決まった時間帯に出す。その時間帯に開けなかったときは、
+  // その日のうちの次のキラキラを星にする（取りそびれないように）
+  const starSlot = bonusSlot(now.day);
+  const starTaken = data.some((row) => row.kind === 'star');
+  const bonus = starSlot !== null && !starTaken
+    && SPARKLE_SLOTS.indexOf(now.slot) >= SPARKLE_SLOTS.indexOf(starSlot);
+
+  pending = claimedToday.has(now.slot) ? null : { ...now, bonus };
 
   showSparkle();
   showGacha();
