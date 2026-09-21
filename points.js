@@ -117,19 +117,18 @@ function scramble(n) {
 // 星の時間帯を数えはじめる組（2026年9月はじめ）。ここから順に足していく
 const STAR_FIRST_BLOCK = 6899;
 
-// 星の日と、星が出る時間帯。3日ずつの組に分けて、その3日のうちどの日に出すかを
-// でたらめに決める（3日に1回のペースは守る）。
-// 時間帯は、前の星から1つか2つ進める。でたらめでも、前と同じ時間帯には続けて出ない。
-// 2人とも同じになるよう、日付そのものから決める。
-// 「その日の最初のひとつ」にすると、朝に開く人はいつも朝になってしまうため
+// 3日に一度の星の日と、星が出る時間帯。2人とも同じになるよう、日付そのものから決める。
+// 日は3日ごとで変えない。時間帯（朝・昼・夜）だけをでたらめに選ぶ。
+// 前の星から1つか2つ進めるので、同じ時間帯が2回続くことはない。
+// 「その日の最初のひとつ」にしていたころは、朝に開く人はいつも朝になってしまった
 function bonusSlot(day) {
   const [year, month, date] = day.split('-').map(Number);
   const n = Math.floor(Date.UTC(year, month - 1, date) / 86400000);
-  const block = Math.floor(n / BONUS_EVERY);
-  if (n % BONUS_EVERY !== scramble(block) % BONUS_EVERY) return null;
+  if (n % BONUS_EVERY !== 0) return null;
 
+  const block = n / BONUS_EVERY;
   let index = 0;
-  for (let k = STAR_FIRST_BLOCK; k <= block; k++) index += 1 + ((scramble(k) >>> 8) % 2);
+  for (let k = STAR_FIRST_BLOCK; k <= block; k++) index += 1 + (scramble(k) % 2);
   return SPARKLE_SLOTS[index % SPARKLE_SLOTS.length];
 }
 
@@ -209,7 +208,7 @@ async function refreshSparkle() {
   const now = currentSlot();
 
   const { data, error } = await supabase
-    .from('points').select('slot, kind').eq('claim_day', now.day);
+    .from('points').select('slot').eq('claim_day', now.day);
 
   if (error) {
     console.error(error);
@@ -218,12 +217,8 @@ async function refreshSparkle() {
 
   claimedToday = new Set(data.map((row) => row.slot));
 
-  // 星は決まった時間帯に出す。その時間帯に開けなかったときは、
-  // その日のうちの次のキラキラを星にする（取りそびれないように）
-  const starSlot = bonusSlot(now.day);
-  const starTaken = data.some((row) => row.kind === 'star');
-  const bonus = starSlot !== null && !starTaken
-    && SPARKLE_SLOTS.indexOf(now.slot) >= SPARKLE_SLOTS.indexOf(starSlot);
+  // 星は決まった時間帯にだけ出す。その時間帯に開けなかったら、ふつうのキラキラのまま
+  const bonus = bonusSlot(now.day) === now.slot;
 
   pending = claimedToday.has(now.slot) ? null : { ...now, bonus };
 
