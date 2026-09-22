@@ -308,6 +308,19 @@ SupabaseのRow Level Securityで実装する：
     3食ボーナスも slot を 'meals' にして、この一意制約に乗せている
   - 残りは my_points() 関数で合計だけ受け取る（全行を持ってこない）
   - 直す・消すのポリシーは作らない。あとから書き換えられないようにするため
+  - 不正対策（2026-09-22、sql/points_guard.sql）。アプリから送る amount を信用せず、
+    insert のたびにトリガー points_guard が検査する。
+    キラキラは「今」の時間帯だけ（過去・未来は入れられない）で 3、星は 13 で
+    星の時間帯（gohan_star_slot。points.js の bonusSlot と同じ計算）のときだけ。
+    3食ボーナスは 10 で、今日か昨日のぶんだけ、しかも写真つきの食べ物の朝・昼・夜が
+    その日にそろっているときだけ。
+    ガチャは draw_gacha()、プレゼントは choose_gift(item_id) の関数からしか入れられない
+    （関数の中で gohan.inside を立てて、それをトリガーが見る）。
+    ガチャの当たりは関数の中の random() で決める（確率を変えるときは points.js の
+    GACHA_PRIZES と draw_gacha の両方を直す。GACHA_PRIZES は絵と一覧の表示用）。
+    プレゼントはポイントを引くのと gifts への知らせを1つのまとまりで行い、
+    引く数は gift_items の cost から取る。足りないときは 'not enough points' で失敗。
+    日付・時間帯の計算は日本時間（Asia/Tokyo）で行う（gohan_now / gohan_day / gohan_slot）
 - gift_items (id, user_id, partner_id, name, cost, created_at)
   - partner_id は誰に向けたプレゼントか。読めるのは用意した人と向けた相手だけ。
     作成・編集・削除は本人のみ（用意した人だけが直せる）

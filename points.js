@@ -503,14 +503,11 @@ function burst(big) {
   setTimeout(() => { gachaBurst.textContent = ''; }, big ? 1800 : 1300);
 }
 
-function drawPrize() {
-  const totalWeight = GACHA_PRIZES.reduce((sum, prize) => sum + prize.weight, 0);
-  let hit = Math.random() * totalWeight;
-  for (const prize of GACHA_PRIZES) {
-    hit -= prize.weight;
-    if (hit < 0) return prize;
-  }
-  return GACHA_PRIZES[0];
+// 当たりはデータベースの関数 draw_gacha が決める（ブラウザ側で決めると、
+// 開発ツールから好きな数を入れられてしまうため）。ここは絵を探すだけ
+function prizeFor(points) {
+  return GACHA_PRIZES.find((prize) => prize.points === points)
+    ?? { points, face: '🎁' };
 }
 
 gachaDraw.addEventListener('click', async () => {
@@ -530,12 +527,8 @@ gachaDraw.addEventListener('click', async () => {
   }, 110);
   const startedAt = Date.now();
 
-  const day = currentSlot().day;
-  const prize = drawPrize();
-  const gained = prize.points;
-  const { error } = await supabase.from('points').insert({
-    kind: 'gacha', amount: gained, claim_day: day, slot: 'gacha',
-  });
+  const { data: gained, error } = await supabase.rpc('draw_gacha');
+  const prize = prizeFor(gained);
 
   // 一瞬で終わると引いた気がしないので、1秒は回す
   await sleep(Math.max(0, 1000 - (Date.now() - startedAt)));
@@ -675,28 +668,15 @@ async function chooseGift(item, button) {
 
   button.disabled = true;
 
-  // 先にポイントを引く。引けなかったら選ばない
-  const { error: pointError } = await supabase
-    .from('points').insert({ kind: 'gift', amount: -item.cost });
-
-  if (pointError) {
-    console.error(pointError);
-    alert('うまくいきませんでした。開き直してから試してください。');
-    button.disabled = false;
-    return;
-  }
-
-  const { error } = await supabase.from('gifts').insert({
-    offered_by: item.user_id,
-    name: item.name,
-    cost: item.cost,
-  });
+  // ポイントを引くのと「選びました」の知らせは、データベースの関数 choose_gift が
+  // 1つのまとまりで行う。引く数も並べてある cost から取るので、ブラウザ側では決めない
+  const { error } = await supabase.rpc('choose_gift', { item_id: item.id });
 
   if (error) {
     console.error(error);
-    // 知らせが届かなかったので、引いたぶんを戻す
-    await supabase.from('points').insert({ kind: 'gift', amount: item.cost });
-    alert('うまくいきませんでした。開き直してから試してください。');
+    alert(error.message?.includes('not enough')
+      ? 'ポイントが足りません。開き直して、今の数を確かめてください。'
+      : 'うまくいきませんでした。開き直してから試してください。');
     button.disabled = false;
     return;
   }
