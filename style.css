@@ -290,7 +290,11 @@ body {
   min-width: 0;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: auto 44px;
+  /* 「？」を横に置いたぶん狭くなった。切れないよう、入りきらないときは絵を縮める */
+  background-size: contain;
+  max-height: 44px;
+  align-self: center;
+  height: 44px;
 }
 
 :root[data-theme="aquarium"] .header-deco { background-image: url("images/aquarium-header.png"); }
@@ -2264,7 +2268,9 @@ body.modal-open {
 /* 使い方の「？」はログアウトの左に置く。タイトルから離して右へ寄せる */
 header .help-button {
   margin-left: auto;
-  width: 32px;
-  height: 32px;
+  /* 扉とのすきまを詰めて、生き物の絵の場所を空ける */
+  margin-right: -6px;
+  width: 28px;
+  height: 28px;
   font-size: 1rem;
 }
