@@ -650,7 +650,7 @@ legend {
 
 .link.danger { color: var(--error); }
 
-/* パスワードを変える。あいさつのすぐ下に、小さく置く。右に「？」（つかいかた）を並べる */
+/* パスワードを変える。あいさつのすぐ下に、小さく置く。右に「？」（使い方）を並べる */
 .settings-row {
   display: flex;
   align-items: center;
@@ -660,7 +660,7 @@ legend {
 
 #password-open { display: block; }
 
-/* つかいかた。小さな丸の「？」 */
+/* 使い方。小さな丸の「？」 */
 .help-button {
   display: inline-flex;
   align-items: center;
@@ -1933,7 +1933,7 @@ body.modal-open {
 
 .pull-refresh.ready .pull-arrow { transform: rotate(180deg); }
 
-/* ---------- つかいかた（チュートリアル） ---------- */
+/* ---------- 使い方（チュートリアル） ---------- */
 
 .help-sheet { max-width: 460px; }
 
@@ -2231,3 +2231,24 @@ body.modal-open {
 .help-group-list { padding: 8px 8px 2px; }
 .help-group-list .help-topic { background: var(--card); }
 .help-group-list .help-topic summary { font-size: 0.9rem; padding: 10px 10px; }
+
+/* このアプリの合言葉。使い方のいちばん上に出す */
+.help-concept {
+  margin: 4px 0 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-input);
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.7;
+  text-align: center;
+}
+.help-concept span {
+  display: block;
+  margin-top: 8px;
+  color: var(--fg);
+  font-weight: 400;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}

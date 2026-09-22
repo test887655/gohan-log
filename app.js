@@ -4,7 +4,7 @@ import { loadIngredients, clearIngredients } from './ingredients.js';
 import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
 import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner, setOtherPanel } from './points.js';
-// つかいかた（？ボタン）。読み込むだけでボタンがつながる
+// 使い方（？ボタン）。読み込むだけでボタンがつながる
 import './help.js';
 
 const BUCKET = 'meal-photos';

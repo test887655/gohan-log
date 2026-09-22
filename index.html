@@ -252,8 +252,8 @@
   <!-- パスワードの変え直し。めったに使わないので、あいさつの下に小さく置く -->
   <div class="settings-row">
     <button type="button" id="password-open" class="link">パスワードを変える</button>
-    <!-- つかいかた（チュートリアル）。中身は help.js -->
-    <button type="button" id="help-open" class="help-button" aria-label="つかいかた" title="つかいかた">？</button>
+    <!-- 使い方（チュートリアル）。中身は help.js -->
+    <button type="button" id="help-open" class="help-button" aria-label="使い方" title="使い方">？</button>
   </div>
   <!-- 共有する相手の切り替え。相手が2人いる人（eri）にだけ出る -->
   <div id="partner-picker" class="partner-picker" role="group" aria-label="共有する相手" hidden></div>
@@ -632,13 +632,17 @@
     </div>
   </div>
 
-  <!-- つかいかた。項目ごとに絵つきで説明する。中身は help.js が作る -->
+  <!-- 使い方。項目ごとに絵つきで説明する。中身は help.js が作る -->
   <div id="help-panel" class="overlay" hidden>
     <div class="sheet help-sheet">
       <div class="view-head">
-        <h2>つかいかた</h2>
+        <h2>使い方</h2>
         <button type="button" id="help-close" class="link">閉じる</button>
       </div>
+      <!-- このアプリの合言葉。項目の前に一度読んでもらう -->
+      <p class="help-concept">ごはんを食べた、すごい！<br>ごはんを用意した、えらい！<br>
+        <span>毎日のあたりまえは、ふだんなかなか褒めてもらえません。<br>
+        このアプリは、そのあたりまえを記録して、誰かに「すごいね」「えらいね」と言ってもらうためのものです。</span></p>
       <p class="hint">知りたい項目を押すと、絵つきの説明が開きます。</p>
       <div id="help-list" class="help-list"></div>
     </div>
