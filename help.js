@@ -298,4 +298,20 @@ function closeHelp() {
 }
 
 document.getElementById('help-open').addEventListener('click', openHelp);
+
+// 初めてのときは自動で開く。見たかどうかは端末ごと・人ごとに localStorage へ覚える。
+// ログアウトすると忘れる（forgetHelpSeen）ので、次にログインしたときにもう一度出る
+const seenKey = (userId) => `help-seen:${userId}`;
+
+export function showHelpOnce(userId) {
+  let seen = false;
+  try { seen = localStorage.getItem(seenKey(userId)) === 'yes'; } catch (error) { /* 使えない端末 */ }
+  if (seen) return;
+  try { localStorage.setItem(seenKey(userId), 'yes'); } catch (error) { /* 同上 */ }
+  openHelp();
+}
+
+export function forgetHelpSeen(userId) {
+  try { localStorage.removeItem(seenKey(userId)); } catch (error) { /* 同上 */ }
+}
 document.getElementById('help-close').addEventListener('click', closeHelp);

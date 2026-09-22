@@ -1937,6 +1937,13 @@ body.modal-open {
 
 .help-sheet { max-width: 460px; }
 
+/* スマホでは画面の幅いっぱいに近づけて、中が詰まって見えないようにする。
+   高さも画面の中に収める（上下の余白ぶんを引く） */
+@media (max-width: 480px) {
+  #help-panel.overlay { padding: 12px 10px; }
+  #help-panel .sheet { max-height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom)); padding: 18px 14px 20px; }
+}
+
 .help-list { margin-top: 14px; }
 
 .help-topic {
@@ -2234,22 +2241,22 @@ body.modal-open {
 
 /* このアプリの合言葉。使い方のいちばん上に出す */
 .help-concept {
-  margin: 4px 0 12px;
-  padding: 14px 16px;
+  margin: 4px 0 14px;
+  padding: 16px 14px;
   border-radius: var(--radius-input);
   background: var(--accent-tint);
   color: var(--accent);
   font-weight: 700;
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 1.02rem;
+  line-height: 1.8;
   text-align: center;
 }
 .help-concept span {
   display: block;
-  margin-top: 8px;
+  margin-top: 12px;
   color: var(--fg);
   font-weight: 400;
-  font-size: 0.82rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.75;
   text-align: left;
 }

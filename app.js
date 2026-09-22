@@ -5,7 +5,7 @@ import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
 import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner, setOtherPanel } from './points.js';
 // 使い方（？ボタン）。読み込むだけでボタンがつながる
-import './help.js';
+import { showHelpOnce, forgetHelpSeen } from './help.js';
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
@@ -398,6 +398,8 @@ loginForm.addEventListener('submit', async (event) => {
 // 絵だけのボタンなので、うっかり押したときのために一度たずねる
 $('logout-button').addEventListener('click', () => {
   if (!confirm('ログアウトしますか？ 次に開くときは、メールアドレスとパスワードが必要です。')) return;
+  // 次にログインしたとき、使い方をもう一度出す
+  if (currentUser) forgetHelpSeen(currentUser.id);
   supabase.auth.signOut();
 });
 
@@ -624,6 +626,9 @@ async function handleSession(session) {
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();
+
+  // 初めて開いたとき（とログインし直したとき）は、使い方を1回だけ自動で出す
+  showHelpOnce(currentUser.id);
 }
 
 // ---------- 投稿フォーム ----------
