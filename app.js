@@ -7,8 +7,13 @@ import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner,
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
-// なにを記録したか。カードのメニュー名の上に札で出す（列を足す前の記録は食べ物あつかい）
+// ジャンル。複数選べる（列 category は text[]）。カードのメニュー名の上に札で出す。
+// 並びはこの順で固定する（選んだ順ではなく、いつも 食べ物→飲み物→その他）
 const CATEGORY_LABELS = { food: '食べ物', drink: '飲み物', other: 'その他' };
+const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
+function categoryInputs() {
+  return [...mealForm.querySelectorAll('input[name="category"]')];
+}
 const SIGNED_URL_SECONDS = 60 * 60;
 
 // 自分の投稿に自分で付ける印。うまくできた記録をあとから見返すため。
@@ -640,8 +645,8 @@ function openForm(meal) {
       : '写真なしの記録です。ここで追加できます。';
     photoHint.hidden = false;
     mealForm.querySelector('input[value="' + meal.meal_type + '"]').checked = true;
-    const category = mealForm.querySelector('input[name="category"][value="' + (meal.category ?? 'food') + '"]');
-    if (category) category.checked = true;
+    const chosen = new Set(meal.category ?? ['food']);
+    for (const input of categoryInputs()) input.checked = chosen.has(input.value);
     eatenAtInput.value = toInputValue(new Date(meal.eaten_at));
     placeInput.value = meal.place ?? '';
     noteInput.value = meal.note ?? '';
@@ -682,6 +687,13 @@ mealForm.addEventListener('submit', async (event) => {
   saveButton.textContent = '保存中…';
 
   try {
+    // ジャンルはチェックボックスなので required が効かない。ここで1つ以上を確かめる
+    const categories = CATEGORY_ORDER.filter((kind) =>
+      categoryInputs().some((input) => input.value === kind && input.checked));
+    if (categories.length === 0) {
+      throw new Error('ジャンル（食べ物・飲み物・その他）を1つ以上選んでください。');
+    }
+
     const file = photoInput.files[0];
     let photoPath = editingMeal?.photo_path ?? null;
 
@@ -702,7 +714,7 @@ mealForm.addEventListener('submit', async (event) => {
       diary: diaryInput.value.trim() || null,
       eaten_at: new Date(eatenAtInput.value).toISOString(),
       meal_type: mealForm.elements.meal_type.value,
-      category: mealForm.elements.category.value,
+      category: categories,
     };
 
     if (editingMeal) {
@@ -1098,12 +1110,17 @@ function renderMeal(meal, photoUrl) {
     card.append(place);
   }
 
-  // なにを記録したかの札。メニュー名のすぐ上に出して、飲み物だけの投稿が一目で分かるようにする
-  const category = meal.category ?? 'food';
-  const tag = document.createElement('p');
-  tag.className = `category-tag ${category}`;
-  tag.textContent = CATEGORY_LABELS[category] ?? category;
-  card.append(tag);
+  // ジャンルの札。メニュー名のすぐ上に並べて、飲み物だけの投稿が一目で分かるようにする
+  const chosen = new Set(meal.category ?? ['food']);
+  const tags = document.createElement('p');
+  tags.className = 'category-tags';
+  for (const kind of CATEGORY_ORDER.filter((k) => chosen.has(k))) {
+    const tag = document.createElement('span');
+    tag.className = `category-tag ${kind}`;
+    tag.textContent = CATEGORY_LABELS[kind];
+    tags.append(tag);
+  }
+  card.append(tags);
 
   if (meal.note) {
     const note = document.createElement('p');

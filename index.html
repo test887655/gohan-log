@@ -277,13 +277,14 @@
       </div>
     </fieldset>
 
-    <!-- なにを記録したか。必ず選ぶ。3食ボーナスに数えるのは「食べ物」だけ -->
+    <!-- ジャンル。複数選べるが、1つは必ず選ぶ（JSで確かめる）。
+         3食ボーナスに数えるのは「食べ物」が入っている記録だけ -->
     <fieldset>
-      <legend>なに</legend>
+      <legend>ジャンル</legend>
       <div class="chips">
-        <label class="chip"><input type="radio" name="category" value="food" aria-label="食べ物" required> 食べ物</label>
-        <label class="chip"><input type="radio" name="category" value="drink" aria-label="飲み物"> 飲み物</label>
-        <label class="chip"><input type="radio" name="category" value="other" aria-label="その他"> その他</label>
+        <label class="chip"><input type="checkbox" name="category" value="food" aria-label="食べ物"> 食べ物</label>
+        <label class="chip"><input type="checkbox" name="category" value="drink" aria-label="飲み物"> 飲み物</label>
+        <label class="chip"><input type="checkbox" name="category" value="other" aria-label="その他"> その他</label>
       </div>
     </fieldset>
 

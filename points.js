@@ -294,8 +294,9 @@ function mealDay(when) {
 }
 
 // 朝・昼・夜の3つがそろったら、その日1回だけ10ポイント。
-// 数えるのは「写真つき」で「食べ物」の記録だけ。写真なしや飲み物・その他は
-// 記録はできるがボーナスには入れない（文字だけの「水」で稼げないようにするため）。
+// 数えるのは「写真つき」でジャンルに「食べ物」が入っている記録だけ。
+// 写真なしや、飲み物・その他だけの記録は、記録はできるがボーナスには入れない
+// （文字だけの「水」で稼げないようにするため）。食べ物と飲み物の両方なら入る。
 // 記録したときと、開いたとき（相手の端末…ではなく自分の別の端末で記録した場合）に見に行く
 export async function checkMealBonus(when = new Date()) {
   if (!me) return;
@@ -320,7 +321,7 @@ export async function checkMealBonus(when = new Date()) {
     .from('meals').select('meal_type')
     .eq('user_id', me.id)
     .not('photo_path', 'is', null)
-    .eq('category', 'food')
+    .contains('category', ['food'])
     .gte('eaten_at', start.toISOString())
     .lt('eaten_at', end.toISOString());
 
