@@ -204,6 +204,8 @@
     </div>
     <!-- 水族館のときだけ、タイトルとログアウトのあいだに生き物の絵を出す -->
     <span class="header-deco" aria-hidden="true"></span>
+    <!-- 使い方（チュートリアル）。中身は help.js -->
+    <button type="button" id="help-open" class="help-button" aria-label="使い方" title="使い方">？</button>
     <button id="logout-button" class="icon-button" aria-label="ログアウト" title="ログアウト">
       <svg class="door-icon" aria-hidden="true"><use href="#door"/></svg>
     </button>
@@ -252,8 +254,6 @@
   <!-- パスワードの変え直し。めったに使わないので、あいさつの下に小さく置く -->
   <div class="settings-row">
     <button type="button" id="password-open" class="link">パスワードを変える</button>
-    <!-- 使い方（チュートリアル）。中身は help.js -->
-    <button type="button" id="help-open" class="help-button" aria-label="使い方" title="使い方">？</button>
   </div>
   <!-- 共有する相手の切り替え。相手が2人いる人（eri）にだけ出る -->
   <div id="partner-picker" class="partner-picker" role="group" aria-label="共有する相手" hidden></div>

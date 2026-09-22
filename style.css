@@ -2260,3 +2260,11 @@ body.modal-open {
   line-height: 1.75;
   text-align: left;
 }
+
+/* 使い方の「？」はログアウトの左に置く。タイトルから離して右へ寄せる */
+header .help-button {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+}
