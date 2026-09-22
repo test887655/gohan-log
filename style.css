@@ -2282,3 +2282,7 @@ header .help-button {
   max-height: 64px;
   margin: -8px 0;
 }
+
+/* 水族館のカメとクマノミは横に広い（表示140px）。ガチャのアイコンがある人は
+   場所が足りず魚が切れるので、入りきらないときは絵ごと縮める */
+:root[data-theme="aquarium"] .toolbar-deco { background-size: contain; }
