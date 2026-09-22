@@ -2251,4 +2251,5 @@ body.modal-open {
   font-weight: 400;
   font-size: 0.82rem;
   line-height: 1.6;
+  text-align: left;
 }
