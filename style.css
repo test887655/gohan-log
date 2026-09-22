@@ -2274,3 +2274,11 @@ header .help-button {
   height: 28px;
   font-size: 1rem;
 }
+
+/* キリンは細長いので、高さ44pxだと小さくて分からない。
+   上下に少しはみ出させて大きく出す（ヘッダーの高さは変えない） */
+:root[data-theme="zoo"] .header-deco {
+  height: 64px;
+  max-height: 64px;
+  margin: -8px 0;
+}
