@@ -650,10 +650,33 @@ legend {
 
 .link.danger { color: var(--error); }
 
-/* パスワードを変える。あいさつのすぐ下に、小さく置く */
-#password-open {
-  display: block;
+/* パスワードを変える。あいさつのすぐ下に、小さく置く。右に「？」（つかいかた）を並べる */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: -4px 0 12px;
+}
+
+#password-open { display: block; }
+
+/* つかいかた。小さな丸の「？」 */
+.help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .door-icon {
@@ -1909,3 +1932,302 @@ body.modal-open {
 }
 
 .pull-refresh.ready .pull-arrow { transform: rotate(180deg); }
+
+/* ---------- つかいかた（チュートリアル） ---------- */
+
+.help-sheet { max-width: 460px; }
+
+.help-list { margin-top: 14px; }
+
+.help-topic {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  background: var(--bg);
+  margin-bottom: 8px;
+}
+
+.help-topic summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.help-topic summary::-webkit-details-marker { display: none; }
+.help-topic summary::after {
+  content: "›";
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 1.2rem;
+  transition: transform 0.15s;
+}
+.help-topic[open] > summary::after { transform: rotate(90deg); }
+.help-topic[open] > summary { border-bottom: 1px solid var(--border); }
+
+.help-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: currentColor;
+}
+.help-icon.head { color: var(--accent); }
+.help-icon.big { width: 34px; height: 34px; }
+.help-icon.sm { width: 16px; height: 16px; color: var(--muted); }
+.help-icon.on {
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-tint);
+  padding: 4px;
+  width: 30px;
+  height: 30px;
+}
+
+.help-body {
+  padding: 12px 14px 14px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.help-body p { margin: 8px 0; }
+.help-body ul, .help-body ol { margin: 6px 0 10px; padding-left: 1.3em; }
+.help-body li { margin: 4px 0; }
+.help-body strong { color: var(--accent); }
+
+/* 絵。スマホの画面をまねた小さな枠。本物の部品（キラキラや冷蔵庫）を小さく並べる */
+.help-fig { margin: 0 0 12px; }
+.help-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--fg);
+  font-size: 0.78rem;
+}
+
+.help-mini-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.help-mini-header .tap-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  outline: 2px dashed var(--accent);
+}
+.help-mini-header .help-icon { width: 18px; height: 18px; color: var(--accent); }
+.help-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+.help-points.tap, .help-door.tap { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.help-door { display: inline-flex; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-input); }
+
+.help-slots { display: flex; gap: 6px; }
+.help-slots div {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 8px;
+  background: var(--accent-tint);
+  text-align: center;
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+.help-slots span { display: block; font-weight: 700; font-size: 0.85rem; }
+
+.help-sparkle-spot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px;
+}
+
+.help-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+}
+.help-badge.ng { background: var(--muted); }
+
+.help-days { display: flex; gap: 6px; }
+.help-days div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+}
+.help-days div.star { border-color: var(--accent); background: var(--accent-tint); color: var(--fg); }
+
+.help-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.help-card.bad { border-style: dashed; opacity: 0.85; }
+.help-card-photo {
+  width: 44px;
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--accent-tint);
+  font-size: 1.1rem;
+}
+.help-card-photo.none { background: var(--bg); color: var(--muted); font-size: 0.6rem; }
+.help-card-body { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.help-type { font-weight: 700; }
+.help-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  font-size: 0.7rem;
+}
+.help-tag::before { content: "● "; color: var(--accent); }
+.help-card-label { color: var(--error); font-size: 0.72rem; }
+.help-card-label::before { content: "✕ "; }
+
+.help-sheet-title { font-weight: 700; font-size: 0.9rem; }
+.help-sheet-sub { color: var(--muted); font-size: 0.72rem; margin-top: 4px; }
+.help-mini-sheet {
+  margin: 0;
+  max-width: none;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.help-gift-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+.help-gift-row span { margin-left: auto; color: var(--muted); }
+.help-gift-row.theirs { background: var(--accent-tint); }
+.help-gift-row em {
+  font-style: normal;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+}
+.help-btn {
+  padding: 7px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+.help-btn.muted { background: var(--bg); color: var(--muted); font-weight: 400; border: 1px solid var(--border); }
+
+.help-toolbar { display: flex; align-items: center; gap: 8px; }
+.help-toolbar .help-icon { width: 30px; height: 30px; padding: 4px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
+.help-toolbar .help-icon.on { border-color: var(--accent); background: var(--accent-tint); }
+.help-chip {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.help-chip.on { border-color: var(--accent); color: var(--accent); }
+.help-themes { display: flex; flex-wrap: wrap; gap: 6px; }
+.help-themes span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  border: 1px solid transparent;
+}
+.help-themes .s { background: #fdf1e8; color: #c85f2a; border-color: #e07a3f; }
+.help-themes .a { background: #f3e6e8; color: #8a5560; }
+.help-themes .c { background: #fde4ee; color: #d1567f; }
+.help-themes .q { background: #e3f3f9; color: #2f7f9c; }
+.help-themes .z { background: #f6efdd; color: #8a5a2b; }
+.help-themes .d { background: #2b2926; color: #e6c27a; }
+
+.help-ing-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.help-ing-row b { min-width: 3.5em; }
+.help-ing-row span { flex: 1; color: var(--muted); font-size: 0.7rem; }
+.help-ing-row span.near { color: var(--error); font-weight: 700; }
+.help-ing-row i { font-style: normal; padding: 2px 6px; border: 1px solid var(--border); border-radius: 999px; white-space: nowrap; }
+
+.help-dot-wrap { position: relative; display: inline-flex; }
+.help-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--card);
+  border-radius: 999px;
+  background: var(--error);
+}
+.help-chat {
+  max-width: 80%;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.help-chat.me { align-self: flex-end; background: var(--accent-tint); }
+.help-chat.you { align-self: flex-start; }
+.help-stamps { letter-spacing: 6px; text-align: center; font-size: 1rem; }
+
+.help-arrow { color: var(--accent); font-weight: 700; font-size: 0.78rem; }
+.help-arrow.right { text-align: right; }
+.help-confirm {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  text-align: center;
+}
+.help-confirm div { display: flex; justify-content: center; gap: 16px; margin-top: 6px; }
+.help-confirm .ok { color: var(--accent); font-weight: 700; }
+
+/* まとめの項目（ポイント）。中に小さい項目を並べる */
+.help-group-list { padding: 8px 8px 2px; }
+.help-group-list .help-topic { background: var(--card); }
+.help-group-list .help-topic summary { font-size: 0.9rem; padding: 10px 10px; }

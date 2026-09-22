@@ -250,7 +250,11 @@
 
   <p id="greeting" class="hint"></p>
   <!-- パスワードの変え直し。めったに使わないので、あいさつの下に小さく置く -->
-  <button type="button" id="password-open" class="link">パスワードを変える</button>
+  <div class="settings-row">
+    <button type="button" id="password-open" class="link">パスワードを変える</button>
+    <!-- つかいかた（チュートリアル）。中身は help.js -->
+    <button type="button" id="help-open" class="help-button" aria-label="つかいかた" title="つかいかた">？</button>
+  </div>
   <!-- 共有する相手の切り替え。相手が2人いる人（eri）にだけ出る -->
   <div id="partner-picker" class="partner-picker" role="group" aria-label="共有する相手" hidden></div>
 
@@ -625,6 +629,18 @@
         <p id="password-done" class="notice" hidden>変えました。次にログインするときから新しいパスワードです。</p>
         <p class="hint">6文字以上。今ログインしている人（自分）のパスワードだけが変わります。</p>
       </form>
+    </div>
+  </div>
+
+  <!-- つかいかた。項目ごとに絵つきで説明する。中身は help.js が作る -->
+  <div id="help-panel" class="overlay" hidden>
+    <div class="sheet help-sheet">
+      <div class="view-head">
+        <h2>つかいかた</h2>
+        <button type="button" id="help-close" class="link">閉じる</button>
+      </div>
+      <p class="hint">知りたい項目を押すと、絵つきの説明が開きます。</p>
+      <div id="help-list" class="help-list"></div>
     </div>
   </div>
 
