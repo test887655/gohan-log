@@ -7,8 +7,8 @@ import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner,
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
-// なにを記録したか。食べ物はふつうなので札を出さず、飲み物・その他だけカードに出す
-const CATEGORY_LABELS = { drink: '飲み物', other: 'その他' };
+// なにを記録したか。カードのメニュー名の上に札で出す（列を足す前の記録は食べ物あつかい）
+const CATEGORY_LABELS = { food: '食べ物', drink: '飲み物', other: 'その他' };
 const SIGNED_URL_SECONDS = 60 * 60;
 
 // 自分の投稿に自分で付ける印。うまくできた記録をあとから見返すため。
@@ -1082,13 +1082,6 @@ function renderMeal(meal, photoUrl) {
   meta.className = 'meta';
   meta.textContent = `${displayNames.get(meal.user_id) ?? '不明'}・`
     + `${MEAL_LABELS[meal.meal_type]}・${dateFormatter.format(new Date(meal.eaten_at))}`;
-  // 飲み物・その他は小さな札を付ける。食べ物はふつうなので何も付けない
-  if (CATEGORY_LABELS[meal.category]) {
-    const tag = document.createElement('span');
-    tag.className = 'category-tag';
-    tag.textContent = CATEGORY_LABELS[meal.category];
-    meta.append(tag);
-  }
   card.append(meta);
 
   // 外食したときのお店。入れていない記録には出さない
@@ -1104,6 +1097,13 @@ function renderMeal(meal, photoUrl) {
     place.append(pin, document.createTextNode(meal.place));
     card.append(place);
   }
+
+  // なにを記録したかの札。メニュー名のすぐ上に出して、飲み物だけの投稿が一目で分かるようにする
+  const category = meal.category ?? 'food';
+  const tag = document.createElement('p');
+  tag.className = `category-tag ${category}`;
+  tag.textContent = CATEGORY_LABELS[category] ?? category;
+  card.append(tag);
 
   if (meal.note) {
     const note = document.createElement('p');
