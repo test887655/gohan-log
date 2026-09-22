@@ -1342,9 +1342,6 @@ button.place-main { cursor: pointer; }
   background: var(--accent);
 }
 
-.category-tag.drink::before { background: #6fb3d9; }
-.category-tag.other::before { background: #b0a9a4; }
-
 /* 日記。ごはんのメモと見分けがつくよう、薄い色の帯に入れて少し小さくする */
 .diary-text {
   margin: 8px 0 0;
