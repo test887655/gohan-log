@@ -305,6 +305,12 @@ export async function checkMealBonus(when = new Date()) {
   // 今日のぶんはもう分かっているので、受け取り済みなら数えに行かない
   if (today && claimedToday.has('meals')) return;
 
+  // ボーナスが入るのは今日と昨日のぶんだけ。昨日は「夜ごはんを翌朝に付ける」ため。
+  // 何日も前にさかのぼって3枚そろえても入らない（過去を埋めて稼がないようにする）
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (!today && day !== mealDay(yesterday)) return;
+
   const start = new Date(`${day}T05:00:00`);
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
