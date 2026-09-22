@@ -1313,6 +1313,17 @@ button.place-main { cursor: pointer; }
 }
 
 /* 日記。ごはんのメモと見分けがつくよう、薄い色の帯に入れて少し小さくする */
+.category-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--like-tint);
+  color: var(--fg);
+  font-size: 11px;
+  vertical-align: 1px;
+}
+
 .diary-text {
   margin: 8px 0 0;
   padding: 6px 10px;

@@ -277,6 +277,16 @@
       </div>
     </fieldset>
 
+    <!-- なにを記録したか。必ず選ぶ。3食ボーナスに数えるのは「食べ物」だけ -->
+    <fieldset>
+      <legend>なに</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="category" value="food" aria-label="食べ物" required> 食べ物</label>
+        <label class="chip"><input type="radio" name="category" value="drink" aria-label="飲み物"> 飲み物</label>
+        <label class="chip"><input type="radio" name="category" value="other" aria-label="その他"> その他</label>
+      </div>
+    </fieldset>
+
     <label>
       日時
       <input type="datetime-local" id="eaten-at" required>

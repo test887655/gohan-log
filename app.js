@@ -7,6 +7,8 @@ import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner,
 
 const BUCKET = 'meal-photos';
 const MEAL_LABELS = { breakfast: '朝', lunch: '昼', dinner: '夜', snack: '間食' };
+// なにを記録したか。食べ物はふつうなので札を出さず、飲み物・その他だけカードに出す
+const CATEGORY_LABELS = { drink: '飲み物', other: 'その他' };
 const SIGNED_URL_SECONDS = 60 * 60;
 
 // 自分の投稿に自分で付ける印。うまくできた記録をあとから見返すため。
@@ -638,6 +640,8 @@ function openForm(meal) {
       : '写真なしの記録です。ここで追加できます。';
     photoHint.hidden = false;
     mealForm.querySelector('input[value="' + meal.meal_type + '"]').checked = true;
+    const category = mealForm.querySelector('input[name="category"][value="' + (meal.category ?? 'food') + '"]');
+    if (category) category.checked = true;
     eatenAtInput.value = toInputValue(new Date(meal.eaten_at));
     placeInput.value = meal.place ?? '';
     noteInput.value = meal.note ?? '';
@@ -698,6 +702,7 @@ mealForm.addEventListener('submit', async (event) => {
       diary: diaryInput.value.trim() || null,
       eaten_at: new Date(eatenAtInput.value).toISOString(),
       meal_type: mealForm.elements.meal_type.value,
+      category: mealForm.elements.category.value,
     };
 
     if (editingMeal) {
@@ -721,7 +726,7 @@ mealForm.addEventListener('submit', async (event) => {
     // 別の週の日付で保存したときは、その記録が見える週に移動する
     weekStart = startOfWeek(new Date(values.eaten_at));
     await loadTimeline();
-    // その日の朝・昼・夜がそろったらボーナス
+    // その日の朝・昼・夜がそろったらボーナス（写真つきの食べ物だけ数える）
     await checkMealBonus(new Date(values.eaten_at));
   } catch (error) {
     console.error(error);
@@ -1077,6 +1082,13 @@ function renderMeal(meal, photoUrl) {
   meta.className = 'meta';
   meta.textContent = `${displayNames.get(meal.user_id) ?? '不明'}・`
     + `${MEAL_LABELS[meal.meal_type]}・${dateFormatter.format(new Date(meal.eaten_at))}`;
+  // 飲み物・その他は小さな札を付ける。食べ物はふつうなので何も付けない
+  if (CATEGORY_LABELS[meal.category]) {
+    const tag = document.createElement('span');
+    tag.className = 'category-tag';
+    tag.textContent = CATEGORY_LABELS[meal.category];
+    meta.append(tag);
+  }
   card.append(meta);
 
   // 外食したときのお店。入れていない記録には出さない
