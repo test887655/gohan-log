@@ -29,6 +29,9 @@ const REACTION_TEXT: Record<string, string> = {
   recipe: 'がレシピを知りたがっています',
 };
 
+// iPhoneへの通知を受け取る人（表示名）。アプリの push.js の PUSH_USERS と同じにしておく
+const PUSH_USERS = ['eri'];
+
 // 古い書き込みで何度も呼ばれても通知を連発しないよう、入ってすぐのものだけ送る
 const FRESH_MS = 5 * 60 * 1000;
 
@@ -98,6 +101,8 @@ Deno.serve(async (req) => {
   if (!message || Date.now() - new Date(message.createdAt).getTime() > FRESH_MS) {
     return new Response('skip');
   }
+
+  if (!PUSH_USERS.includes(await nameOf(message.to))) return new Response('skip');
 
   const { data: subs } = await db
     .from('push_subscriptions').select('endpoint, p256dh, auth').eq('user_id', message.to);

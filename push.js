@@ -8,6 +8,10 @@ import { VAPID_PUBLIC_KEY } from './config.js';
 
 const button = document.getElementById('push-open');
 
+// iPhoneへの通知を受け取る人（表示名）。ほかの人にはボタンを出さない。
+// 送る側（supabase/functions/notify）の PUSH_USERS と同じにしておく
+const PUSH_USERS = ['eri'];
+
 function supported() {
   return Boolean(VAPID_PUBLIC_KEY) && 'serviceWorker' in navigator
     && 'PushManager' in window && 'Notification' in window;
@@ -65,10 +69,16 @@ button?.addEventListener('click', async () => {
 });
 
 // ログインしたときに呼ぶ。許可済みの端末は宛先を登録し直しておく（宛先が変わることがあるため）
-export async function refreshPush() {
+export async function refreshPush(myName) {
   if (!button) return;
-  button.hidden = !supported();
+  const allowed = PUSH_USERS.includes(myName ?? '');
+  button.hidden = !supported() || !allowed;
   if (!supported()) return;
+  if (!allowed) {
+    // 前に登録していた端末も、宛先から外しておく
+    await forgetPush();
+    return;
+  }
   setLabel();
   if (Notification.permission !== 'granted') return;
   try {

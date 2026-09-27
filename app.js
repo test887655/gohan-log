@@ -681,7 +681,7 @@ async function handleSession(session) {
   } catch (error) { console.error(error); }
 
   // 通知を許可している端末は、iPhoneへの通知の宛先を登録し直す
-  refreshPush();
+  refreshPush(displayNames.get(currentUser.id));
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();

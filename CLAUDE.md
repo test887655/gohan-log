@@ -211,7 +211,7 @@ SupabaseのRow Level Securityで実装する：
   それより新しいものがあればベルに赤い丸、一覧ではその行に色を付ける。開くと丸は消える
 - 反応を押すと、その投稿の週のタイムラインへ移ってカードまで動かし、少し光らせる（.card.flash）。
   そうだんを押すと、書いた相手とのそうだんを開く（eri は相手も切り替わる）
-- iPhoneへの通知（Web Push）。「パスワードを変える」の横の「通知を受け取る」を押すと、
+- iPhoneへの通知（Web Push）。受け取るのは eri だけ（push.js と notify の PUSH_USERS。ほかの人にはボタンを出さず、関数も送らない）。「パスワードを変える」の横の「通知を受け取る」を押すと、
   許可を聞いて、この端末の宛先を push_subscriptions（endpoint が主キー、本人のみ。sql/push_subscriptions.sql）に入れる（push.js）。
   iPhone はホーム画面に追加したアプリからでないと受け取れない（iOS 16.4 以上）。許可済みの端末はログインのたびに登録し直し、
   ログアウトの前に消す（forgetPush）
