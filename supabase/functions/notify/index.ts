@@ -43,11 +43,15 @@ async function buildMessage(table: string, id: string) {
   if (table === 'meal_reactions') {
     const { data } = await db
       .from('meal_reactions')
-      .select('kind, user_id, created_at, meals(user_id, note)')
+      .select('kind, user_id, meal_id, created_at, meals(user_id, note)')
       .eq('id', id).maybeSingle();
     if (!data || !data.meals) return null;
     const owner = (data.meals as { user_id: string }).user_id;
     if (owner === data.user_id) return null;
+    // オン→オフ→オンで同じ反応が入り直しても、通知は最初の1回だけにする
+    const { error } = await db
+      .from('push_sent').insert({ meal_id: data.meal_id, user_id: data.user_id, kind: data.kind });
+    if (error) return null;
     const note = (data.meals as { note: string | null }).note;
     return {
       to: owner,
