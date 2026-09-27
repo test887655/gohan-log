@@ -1,5 +1,5 @@
 // アプリの見た目部分だけをキャッシュする。データと写真はSupabaseから毎回取得する。
-const CACHE = 'gohan-v64';
+const CACHE = 'gohan-v65';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
   './places.js',
   './chat.js',
   './notices.js',
+  './push.js',
   './points.js',
   './help.js',
   './config.js',
@@ -77,5 +78,33 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => caches.match(event.request).then((hit) => hit ?? caches.match('./index.html')))
+  );
+});
+
+// ---------- iPhoneへの通知 ----------
+// Edge Function（supabase/functions/notify）が送ってきた中身を、そのまま通知にする
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data?.json() ?? {};
+  } catch (error) { /* 文字だけで来たときは既定の文にする */ }
+  event.waitUntil(self.registration.showNotification(data.title ?? 'ごはん記録', {
+    body: data.body ?? '新しいお知らせがあります',
+    icon: './icons/icon-192.png',
+  }));
+});
+
+// 通知を押したら、アプリのお知らせの画面を開く。開いていればそれを前に出す
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const open = windows[0];
+      if (open) {
+        open.postMessage('open-notices');
+        return open.focus();
+      }
+      return self.clients.openWindow('./?view=notices');
+    })
   );
 });

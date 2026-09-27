@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>通知の鍵を作る</title>
+<!-- iPhoneへの通知（Web Push）の鍵の組を、このブラウザの中だけで作る。どこにも送らない。
+     公開鍵は config.js へ、秘密鍵は Supabase の Edge Functions → Secrets の VAPID_PRIVATE_KEY へ。
+     このページを開き直すと別の鍵になるので、両方を同じ回のものでそろえること -->
+<style>
+  body { font-family: sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; line-height: 1.6; }
+  textarea { width: 100%; font-family: monospace; }
+  .secret { border: 2px solid #c0392b; padding: 8px 12px; border-radius: 8px; }
+</style>
+<h1>通知の鍵</h1>
+<p>公開鍵（VAPID_PUBLIC_KEY）。これは人に見せても大丈夫です。</p>
+<textarea id="public" rows="3" readonly></textarea>
+<div class="secret">
+  <p><b>秘密鍵（VAPID_PRIVATE_KEY）。誰にも見せないでください。</b>Supabase に貼るだけにします。</p>
+  <textarea id="private" rows="2" readonly></textarea>
+</div>
+<script type="module">
+  const b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']);
+  document.getElementById('public').value = b64url(await crypto.subtle.exportKey('raw', pair.publicKey));
+  const jwk = await crypto.subtle.exportKey('jwk', pair.privateKey);
+  document.getElementById('private').value = jwk.d;
+</script>

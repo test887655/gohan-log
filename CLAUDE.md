@@ -211,7 +211,19 @@ SupabaseのRow Level Securityで実装する：
   それより新しいものがあればベルに赤い丸、一覧ではその行に色を付ける。開くと丸は消える
 - 反応を押すと、その投稿の週のタイムラインへ移ってカードまで動かし、少し光らせる（.card.flash）。
   そうだんを押すと、書いた相手とのそうだんを開く（eri は相手も切り替わる）
-- 次の予定：iPhoneへのプッシュ通知（Web Push。Supabase の Edge Function から送る）
+- iPhoneへの通知（Web Push）。「パスワードを変える」の横の「通知を受け取る」を押すと、
+  許可を聞いて、この端末の宛先を push_subscriptions（endpoint が主キー、本人のみ。sql/push_subscriptions.sql）に入れる（push.js）。
+  iPhone はホーム画面に追加したアプリからでないと受け取れない（iOS 16.4 以上）。許可済みの端末はログインのたびに登録し直し、
+  ログアウトの前に消す（forgetPush）
+  - 送るのは Edge Function の notify（supabase/functions/notify/index.ts。ダッシュボードの Edge Functions に貼って置いてある）。
+    meal_reactions と chat_messages の insert でトリガー（sql/push_triggers.sql。supabase_functions.http_request）が呼ぶ
+  - 関数の「Verify JWT」は切ってあり、トリガーも鍵を付けずに呼ぶ（Secret キーを扱わないため）。
+    代わりに関数は、届いた id でデータベースから読み直し、入って5分以内のものだけ送る
+  - 鍵：公開鍵は config.js の VAPID_PUBLIC_KEY、秘密鍵は Edge Functions の Secrets（VAPID_PRIVATE_KEY / VAPID_PUBLIC_KEY）だけ。
+    作り直すときは tools/vapid-keys.html をブラウザで開く（その場で作るだけで、どこにも送らない）。
+    鍵を変えると、みんな「通知を受け取る」を押し直しになる
+  - 届かなくなった端末（404 / 410）は、関数が宛先から消す
+  - 通知を押すと ./?view=notices で開き、お知らせの画面を出す（sw.js の notificationclick）
 
 ### 見た目
 - 「シンプル」「大人」「かわいい」「水族館」「動物園」「ダーク」の6種類。

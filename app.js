@@ -4,6 +4,7 @@ import { loadIngredients, clearIngredients } from './ingredients.js';
 import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
 import { loadNotices, clearNotices, refreshNoticeDot } from './notices.js';
+import { refreshPush, forgetPush } from './push.js';
 import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner, setOtherPanel } from './points.js';
 // 使い方（？ボタン）。読み込むだけでボタンがつながる
 import { showHelpOnce, forgetHelpSeen } from './help.js';
@@ -434,10 +435,12 @@ loginForm.addEventListener('submit', async (event) => {
 });
 
 // 絵だけのボタンなので、うっかり押したときのために一度たずねる
-$('logout-button').addEventListener('click', () => {
+$('logout-button').addEventListener('click', async () => {
   if (!confirm('ログアウトしますか？ 次に開くときは、メールアドレスとパスワードが必要です。')) return;
   // 次にログインしたとき、使い方をもう一度出す
   if (currentUser) forgetHelpSeen(currentUser.id);
+  // この端末には、もうその人の通知を送らない
+  await forgetPush();
   supabase.auth.signOut();
 });
 
@@ -580,8 +583,17 @@ window.addEventListener('touchcancel', () => {
 try {
   const view = sessionStorage.getItem('pull-view');
   sessionStorage.removeItem('pull-view');
-  if (['meals', 'ingredients', 'favorites', 'album', 'places', 'chat'].includes(view)) showView(view);
+  if (['meals', 'ingredients', 'favorites', 'album', 'places', 'chat', 'notices'].includes(view)) showView(view);
 } catch (error) { /* 使えないときは、ごはんの画面のまま */ }
+
+// iPhoneの通知を押して開いたときは、お知らせの画面を出す（sw.js の notificationclick）
+if (new URLSearchParams(location.search).get('view') === 'notices') {
+  showView('notices');
+  history.replaceState(null, '', location.pathname);
+}
+navigator.serviceWorker?.addEventListener('message', (event) => {
+  if (event.data === 'open-notices') showView('notices');
+});
 
 // iOSは、しばらく使わないと端末に覚えたログインを消してしまうことがある。
 // 消さないでほしいと先に頼んでおく（対応していない端末では何も起きない）
@@ -667,6 +679,9 @@ async function handleSession(session) {
   try {
     await refreshNoticeDot(currentUser.id);
   } catch (error) { console.error(error); }
+
+  // 通知を許可している端末は、iPhoneへの通知の宛先を登録し直す
+  refreshPush();
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
   await reloadActiveView();
