@@ -124,6 +124,14 @@
     </g>
   </symbol>
 
+  <!-- お知らせのベル。ほかの絵と同じで、色はSVGに直接書く -->
+  <symbol id="bell" viewBox="0 0 24 24">
+    <path d="M12 3.2c-3.3 0-5.6 2.5-5.6 5.8v3.6l-1.8 3.1c-.3.5.1 1.1.6 1.1h13.6c.6 0 .9-.6.6-1.1l-1.8-3.1V9c0-3.3-2.3-5.8-5.6-5.8z"
+          fill="#f2c94c" stroke="#b8862b" stroke-width="1" stroke-linejoin="round"/>
+    <path d="M9.6 18.2a2.4 2.4 0 004.8 0z" fill="#b8862b"/>
+    <circle cx="12" cy="2.9" r="1" fill="#b8862b"/>
+  </symbol>
+
   <!-- 地図のピン。外食したお店の名前の頭に付ける。
        ほかの絵と同じで、色はSVGに直接書く（CSSが古いままでも真っ黒にならないように） -->
   <symbol id="pin" viewBox="0 0 24 24">
@@ -223,6 +231,12 @@
               aria-label="そうだん" title="そうだん">
         <svg class="bubble-icon" aria-hidden="true"><use href="#bubble"/></svg>
         <span id="chat-dot" class="dot" hidden></span>
+      </button>
+      <!-- お知らせ。いいね・おいしそう・レシピが知りたい・そうだんの一覧（notices.js） -->
+      <button type="button" id="notice-open" class="icon-button round" aria-pressed="false"
+              aria-label="お知らせ" title="お知らせ">
+        <svg class="bell-icon" aria-hidden="true"><use href="#bell"/></svg>
+        <span id="notice-dot" class="dot" hidden></span>
       </button>
       <!-- ガチャ。プレゼントの中ではなく、ここから直接開ける。
            出せる人（points.js の GACHA_USERS）以外には出さない -->
@@ -531,6 +545,18 @@
       <p id="chat-status" class="hint">読み込み中…</p>
     </div>
     <div id="chat-list"></div>
+  </section>
+
+  <!-- お知らせ。押すとその投稿（そうだんはそうだんの画面）へ移る -->
+  <section id="view-notices" hidden>
+    <div class="view-head">
+      <h2>お知らせ</h2>
+    </div>
+    <div id="notice-empty" class="empty">
+      <svg class="flower flower-empty" aria-hidden="true"><use href="#flower"/></svg>
+      <p id="notice-status" class="hint">読み込み中…</p>
+    </div>
+    <ul id="notice-list" class="notice-list"></ul>
   </section>
 
   <!-- 朝・昼・夜に1回ずつ、画面のどこかに出る -->

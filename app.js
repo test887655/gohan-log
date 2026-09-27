@@ -3,6 +3,7 @@ import { shrinkImage } from './image.js';
 import { loadIngredients, clearIngredients } from './ingredients.js';
 import { loadPlaces, clearPlaces, loadPlaceOptions } from './places.js';
 import { loadChats, clearChats, refreshChatDot, openAskForm } from './chat.js';
+import { loadNotices, clearNotices, refreshNoticeDot } from './notices.js';
 import { loadPoints, clearPoints, setHomeScreen, checkMealBonus, setGiftPartner, setOtherPanel } from './points.js';
 // 使い方（？ボタン）。読み込むだけでボタンがつながる
 import { showHelpOnce, forgetHelpSeen } from './help.js';
@@ -148,6 +149,7 @@ function showStatus(message) {
 
 const ingredientToggle = $('ingredient-toggle');
 const chatToggle = $('chat-open');
+const noticeToggle = $('notice-open');
 const loadedViews = new Set();
 let activeView = 'meals';
 
@@ -170,6 +172,9 @@ $('place-open').addEventListener('click', () => showView('places'));
 // 食材リストへはヘッダーの冷蔵庫、ごはんへは見出しのお茶碗で戻る
 chatToggle.addEventListener('click', () => showView('chat'));
 
+// お知らせ。いいね・おいしそう・レシピが知りたい・そうだんを1つの一覧で見る
+noticeToggle.addEventListener('click', () => showView('notices'));
+
 // 食材の行の吹き出しを押したとき。その食材のことを聞く形で開く
 document.addEventListener('ask-ingredient', (event) => {
   showView('chat');
@@ -182,6 +187,7 @@ function showView(view) {
   ingredientToggle.setAttribute('aria-pressed', String(view === 'ingredients'));
   // 開いている画面のアイコンに色を付ける（冷蔵庫と吹き出しで同じ見た目）
   chatToggle.setAttribute('aria-pressed', String(view === 'chat'));
+  noticeToggle.setAttribute('aria-pressed', String(view === 'notices'));
   // キラキラはごはんの画面にだけ出す
   setHomeScreen(view === 'meals');
   $('view-meals').hidden = view !== 'meals';
@@ -190,11 +196,13 @@ function showView(view) {
   $('view-album').hidden = view !== 'album';
   $('view-places').hidden = view !== 'places';
   $('view-chat').hidden = view !== 'chat';
+  $('view-notices').hidden = view !== 'notices';
 
   // 一度読んだ画面は読み直さない。切り替えるたびに通信するのはもったいない。
-  // ただし、そうだんだけは開くたびに読み直す。
+  // ただし、そうだんとお知らせは開くたびに読み直す。
   // 新しい返事に気づけないと意味がないうえ、文字だけなので軽い
-  if (currentUser && (view === 'chat' || !loadedViews.has(view))) reloadActiveView();
+  const always = view === 'chat' || view === 'notices';
+  if (currentUser && (always || !loadedViews.has(view))) reloadActiveView();
 }
 
 async function reloadActiveView() {
@@ -204,7 +212,37 @@ async function reloadActiveView() {
   else if (activeView === 'album') await loadAlbum();
   else if (activeView === 'places') await loadPlaces(currentUser.id, displayNames, sharedIds());
   else if (activeView === 'chat') await loadChats(currentUser.id, displayNames, activePartner);
+  else if (activeView === 'notices') {
+    await loadNotices(currentUser.id, displayNames, { openMeal: openNoticeMeal, openChat: openNoticeChat });
+  }
   else await loadIngredients();
+}
+
+// ---------- お知らせから移る ----------
+
+// 反応のお知らせ：その投稿がある週のタイムラインへ移り、カードまで動かして光らせる
+async function openNoticeMeal(meal) {
+  weekStart = startOfWeek(new Date(meal.eaten_at));
+  // showView が別に読み込み始めないようにしてから切り替える（二重に読むとカードが作り直される）
+  loadedViews.add('meals');
+  showView('meals');
+  await loadTimeline();
+
+  const card = timeline.querySelector(`[data-meal="${meal.id}"]`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.classList.add('flash');
+  setTimeout(() => card.classList.remove('flash'), 2000);
+}
+
+// そうだんのお知らせ：書いた相手とのそうだんを開く（eri は相手を切り替える）
+function openNoticeChat(partnerId) {
+  if (partnerIds.includes(partnerId) && partnerId !== activePartner) {
+    // setPartner は開いている画面を読み直すので、先にそうだんにしておく
+    activeView = 'chat';
+    setPartner(partnerId);
+  }
+  showView('chat');
 }
 
 // ---------- 共有する相手 ----------
@@ -592,6 +630,7 @@ async function handleSession(session) {
     clearIngredients();
     clearPlaces();
     clearChats();
+    clearNotices();
     clearPoints();
     loadedViews.clear();
     partnerIds = [];
@@ -622,6 +661,11 @@ async function handleSession(session) {
   // 相手からの新しい書き込みがあれば、冷蔵庫に小さな丸を出す
   try {
     await refreshChatDot(currentUser.id, partnerIds);
+  } catch (error) { console.error(error); }
+
+  // 自分の投稿への反応や、そうだんの書き込みがあれば、ベルに丸を出す
+  try {
+    await refreshNoticeDot(currentUser.id);
   } catch (error) { console.error(error); }
 
   // 開いている画面だけ読み直す。裏の画面まで毎回読むと通信が増える
@@ -1085,6 +1129,8 @@ async function toggleReaction(meal, kind, button) {
 function renderMeal(meal, photoUrl) {
   const card = document.createElement('article');
   card.className = 'card';
+  // お知らせから移ってきたとき、このカードを探せるように
+  card.dataset.meal = meal.id;
 
   if (meal.photo_path) {
     const image = document.createElement('img');
