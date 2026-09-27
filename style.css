@@ -2285,7 +2285,9 @@ header .help-button {
 
 /* 水族館のカメとクマノミは横に広い（表示140px）。ガチャのアイコンがある人は
    場所が足りず魚が切れるので、入りきらないときは絵ごと縮める */
-:root[data-theme="aquarium"] .toolbar-deco { background-size: contain; }
+/* お知らせのベルが増えて、さらに狭くなった。動物園のライオンも切れないよう、同じく縮めて収める */
+:root[data-theme="aquarium"] .toolbar-deco,
+:root[data-theme="zoo"] .toolbar-deco { background-size: contain; }
 
 /* ---------- お知らせ ---------- */
 
