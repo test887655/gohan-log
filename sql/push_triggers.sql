@@ -14,3 +14,10 @@ create or replace trigger notify_chat_messages
   for each row execute function supabase_functions.http_request(
     'https://atvrunfaltnkbwhtpoue.supabase.co/functions/v1/notify', 'POST',
     '{"Content-type":"application/json"}', '{}', '5000');
+
+-- プレゼントを相手が選んだとき（gifts）。用意した人に届く
+create or replace trigger notify_gifts
+  after insert on public.gifts
+  for each row execute function supabase_functions.http_request(
+    'https://atvrunfaltnkbwhtpoue.supabase.co/functions/v1/notify', 'POST',
+    '{"Content-type":"application/json"}', '{}', '5000');

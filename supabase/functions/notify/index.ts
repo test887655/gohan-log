@@ -75,6 +75,16 @@ async function buildMessage(table: string, id: string) {
       body: `${await nameOf(data.user_id)}さんから${topic}のそうだん：${data.body ?? data.stamp ?? ''}`,
     };
   }
+  if (table === 'gifts') {
+    const { data } = await db
+      .from('gifts').select('chosen_by, offered_by, name, created_at').eq('id', id).maybeSingle();
+    if (!data || data.chosen_by === data.offered_by) return null;
+    return {
+      to: data.offered_by,
+      createdAt: data.created_at,
+      body: `${await nameOf(data.chosen_by)}さんがプレゼント「${data.name}」を選びました`,
+    };
+  }
   return null;
 }
 

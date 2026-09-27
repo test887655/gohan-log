@@ -1,5 +1,5 @@
 // お知らせ。自分の投稿に付いた「いいね」「おいしそう」「レシピが知りたい」と、
-// 相手からのそうだんの書き込みを、新しい順に1つの一覧で見せる。
+// 相手からのそうだんの書き込み、相手が選んだプレゼントを、新しい順に1つの一覧で見せる。
 // お知らせ用の表は作らず、meal_reactions と chat_messages から組み立てる。
 // 覚えるのは「最後にお知らせを開いた時刻」（notice_seen）だけで、これより新しいものに丸を付ける
 import { supabase } from './supabase.js';
@@ -72,13 +72,23 @@ async function fetchNotices() {
     .order('created_at', { ascending: false })
     .limit(NOTICE_PAGE);
 
-  const [r, m] = await Promise.all([reactions, messages]);
+  // 自分が用意したプレゼントを、相手が選んだもの
+  const gifts = supabase
+    .from('gifts')
+    .select('id, chosen_by, name, created_at')
+    .eq('offered_by', me)
+    .order('created_at', { ascending: false })
+    .limit(NOTICE_PAGE);
+
+  const [r, m, g] = await Promise.all([reactions, messages, gifts]);
   if (r.error) throw r.error;
   if (m.error) throw m.error;
+  if (g.error) throw g.error;
 
   const items = [
     ...r.data.map((row) => ({ type: 'reaction', ...row })),
     ...m.data.map((row) => ({ type: 'chat', ...row })),
+    ...g.data.map((row) => ({ type: 'gift', user_id: row.chosen_by, ...row })),
   ];
   items.sort((a, b) => b.created_at.localeCompare(a.created_at));
   return items.slice(0, NOTICE_PAGE);
@@ -115,6 +125,12 @@ function renderNotice(item, names, seenAt, { openMeal, openChat }) {
     text.textContent = `${who}${REACTION_TEXT[item.kind] ?? 'が反応しました'}`;
     detail.textContent = item.meals.note || '写真の記録';
     button.addEventListener('click', () => openMeal(item.meals));
+  } else if (item.type === 'gift') {
+    face.textContent = '🎁';
+    text.textContent = `${who}がプレゼントを選びました`;
+    detail.textContent = item.name;
+    // プレゼントの画面を開く（ポイントのところのボタンと同じ）
+    button.addEventListener('click', () => document.getElementById('point-button').click());
   } else {
     face.textContent = '💬';
     const topic = item.chats?.topic;
@@ -150,7 +166,7 @@ export async function refreshNoticeDot(userId) {
   me = userId;
   const seenAt = await readSeen();
 
-  const [r, m] = await Promise.all([
+  const [r, m, g] = await Promise.all([
     supabase
       .from('meal_reactions')
       .select('id, meals!inner(user_id)', { count: 'exact', head: true })
@@ -162,10 +178,16 @@ export async function refreshNoticeDot(userId) {
       .select('id', { count: 'exact', head: true })
       .neq('user_id', me)
       .gt('created_at', seenAt),
+    supabase
+      .from('gifts')
+      .select('id', { count: 'exact', head: true })
+      .eq('offered_by', me)
+      .gt('created_at', seenAt),
   ]);
   if (r.error) console.error(r.error);
   if (m.error) console.error(m.error);
-  dot.hidden = (r.count ?? 0) + (m.count ?? 0) === 0;
+  if (g.error) console.error(g.error);
+  dot.hidden = (r.count ?? 0) + (m.count ?? 0) + (g.count ?? 0) === 0;
 }
 
 async function markSeen() {
