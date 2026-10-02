@@ -22,7 +22,6 @@ const list = $('chat-list');
 const listEmpty = $('chat-empty');
 const listStatus = $('chat-status');
 const chatDot = $('chat-dot');
-const fridgeDot = $('fridge-dot');
 
 let me = null;
 let names = new Map(); // user_id -> 表示名
@@ -139,8 +138,8 @@ export async function refreshChatDot(userId, partnerIds) {
 
 function setDots() {
   const any = unread.size > 0;
+  // 丸はそうだんの吹き出しにだけ出す（冷蔵庫は食材リストなので付けない）
   chatDot.hidden = !any;
-  fridgeDot.hidden = !any;
   // 相手の切り替えボタン（eri だけに出る）にも、その相手のぶんだけ丸を付ける
   for (const button of document.querySelectorAll('.partner-option')) {
     button.querySelector('.dot').hidden = !unread.has(button.dataset.partner);
