@@ -84,6 +84,12 @@ const mealForm = $('meal-form');
 const mealFormTitle = $('meal-form-title');
 const photoInput = $('photo');
 const photoPreview = $('photo-preview');
+
+// 1回の記録に載せられる写真の数
+const MAX_PHOTOS = 5;
+// フォームで選んでいる写真。{ path }（保存済み）か { file }（新しく選んだ）を並べた順に持つ
+let formPhotos = [];
+let photosDirty = false;
 const photoHint = $('photo-hint');
 const eatenAtInput = $('eaten-at');
 const placeInput = $('place');
@@ -538,7 +544,7 @@ function pullBlocked() {
   if ([...document.querySelectorAll('.overlay')].some((el) => !el.hidden)) return true;
   return [...document.querySelectorAll('input, textarea')].some((el) => {
     if (el.offsetParent === null) return false; // 隠れている欄は見ない
-    if (el.type === 'file') return el.files.length > 0;
+    if (el.type === 'file') return photosDirty || el.files.length > 0;
     if (el.type === 'radio' || el.type === 'checkbox') return el.checked !== el.defaultChecked;
     return el.value !== el.defaultValue;
   });
@@ -713,14 +719,16 @@ function openForm(meal) {
   // 登録したお店から選べるようにする。名前だけなので通信はごく軽い
   loadPlaceOptions(sharedIds());
   formError.hidden = true;
-  photoPreview.hidden = true;
+  formPhotos = meal ? mealPhotos(meal).map((path) => ({ path })) : [];
+  photosDirty = false;
+  renderPhotoPicks();
   photoHint.hidden = true;
 
   if (meal) {
     mealFormTitle.textContent = '記録を編集';
     photoHint.textContent = meal.photo_path
-      ? '写真を選ばなければ、今の写真のままになります。'
-      : '写真なしの記録です。ここで追加できます。';
+      ? `写真は${MAX_PHOTOS}枚まで。× で外せます。`
+      : `写真なしの記録です。ここで追加できます（${MAX_PHOTOS}枚まで）。`;
     photoHint.hidden = false;
     mealForm.querySelector('input[value="' + meal.meal_type + '"]').checked = true;
     const chosen = new Set(meal.category ?? ['food']);
@@ -731,7 +739,7 @@ function openForm(meal) {
     diaryInput.value = meal.diary ?? '';
   } else {
     mealFormTitle.textContent = '食事を記録';
-    photoHint.textContent = '写真なしでも記録できます。';
+    photoHint.textContent = `写真なしでも記録できます。${MAX_PHOTOS}枚まで載せられます。`;
     photoHint.hidden = false;
     eatenAtInput.value = toInputValue(new Date());
   }
@@ -745,18 +753,55 @@ function closeForm() {
   editingMeal = null;
   mealForm.hidden = true;
   openFormButton.hidden = false;
-  photoPreview.hidden = true;
+  formPhotos = [];
+  photosDirty = false;
+  renderPhotoPicks();
 }
 
+// 選ぶたびに足していく（前に選んだ写真は消えない）。多すぎたぶんは入れない
 photoInput.addEventListener('change', () => {
-  const file = photoInput.files[0];
-  if (!file) {
-    photoPreview.hidden = true;
-    return;
+  const files = [...photoInput.files];
+  photoInput.value = '';
+  if (files.length === 0) return;
+  const room = MAX_PHOTOS - formPhotos.length;
+  if (files.length > room) {
+    alert(`写真は${MAX_PHOTOS}枚までです。${room > 0 ? `最初の${room}枚だけ入れました。` : '× で外してから選んでください。'}`);
   }
-  photoPreview.src = URL.createObjectURL(file);
-  photoPreview.hidden = false;
+  formPhotos.push(...files.slice(0, Math.max(room, 0)).map((file) => ({ file })));
+  photosDirty = true;
+  renderPhotoPicks();
 });
+
+// 選んでいる写真を小さく並べる。保存済みの写真は署名URLで出す
+async function renderPhotoPicks() {
+  const saved = formPhotos.filter((item) => item.path).map((item) => item.path);
+  const urls = saved.length ? await signedUrlsFor(saved) : new Map();
+  photoPreview.replaceChildren(...formPhotos.map((item, index) => {
+    const li = document.createElement('li');
+    const img = document.createElement('img');
+    img.alt = `選んだ写真 ${index + 1}`;
+    img.src = item.file ? (item.url ??= URL.createObjectURL(item.file)) : (urls.get(item.path) ?? '');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'photo-pick-remove';
+    remove.setAttribute('aria-label', `写真 ${index + 1} を外す`);
+    remove.textContent = '×';
+    remove.addEventListener('click', () => {
+      formPhotos.splice(formPhotos.indexOf(item), 1);
+      photosDirty = true;
+      renderPhotoPicks();
+    });
+    li.append(img, remove);
+    return li;
+  }));
+  photoPreview.hidden = formPhotos.length === 0;
+}
+
+// 記録の写真を並べた順に返す。photo_paths（2枚以上のとき）が無い記録は photo_path の1枚だけ
+function mealPhotos(meal) {
+  if (meal.photo_paths?.length) return meal.photo_paths;
+  return meal.photo_path ? [meal.photo_path] : [];
+}
 
 mealForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -772,21 +817,27 @@ mealForm.addEventListener('submit', async (event) => {
       throw new Error('ジャンル（食べ物・飲み物・その他）を1つ以上選んでください。');
     }
 
-    const file = photoInput.files[0];
-    let photoPath = editingMeal?.photo_path ?? null;
-
-    if (file) {
-      const blob = await shrinkImage(file);
+    // 新しく選んだ写真だけ縮めて送る。保存済みのものはそのまま使う
+    const paths = [];
+    for (const item of formPhotos) {
+      if (item.path) {
+        paths.push(item.path);
+        continue;
+      }
+      const blob = await shrinkImage(item.file);
       const path = `${currentUser.id}/${crypto.randomUUID()}.jpg`;
       const { error } = await supabase.storage
         .from(BUCKET)
         .upload(path, blob, { contentType: 'image/jpeg' });
       if (error) throw error;
-      photoPath = path;
+      item.path = path;
+      paths.push(path);
     }
 
     const values = {
-      photo_path: photoPath,
+      // 1枚目は photo_path にも入れる。アルバム・ポイントの判定は今まで通りこれを見る
+      photo_path: paths[0] ?? null,
+      photo_paths: paths.length > 1 ? paths : null,
       place: placeInput.value.trim() || null,
       note: noteInput.value.trim() || null,
       diary: diaryInput.value.trim() || null,
@@ -796,17 +847,16 @@ mealForm.addEventListener('submit', async (event) => {
     };
 
     if (editingMeal) {
-      const oldPath = editingMeal.photo_path;
+      const oldPaths = mealPhotos(editingMeal);
       // .select() を付けて、実際に何件更新されたかを確認する。
       // RLSは権限がない場合もログインが切れている場合もエラーを返さず0件を返すため、
       // これがないと失敗に気づけない。
       const { data, error } = await supabase.from('meals').update(values).eq('id', editingMeal.id).select();
       if (error) throw error;
       if (data.length === 0) throw new Error('ログインの有効期限が切れている可能性があります。ログインし直してください。');
-      // 写真を差し替えたときは、古い写真を消して容量を節約する
-      if (file && oldPath && oldPath !== photoPath) {
-        await supabase.storage.from(BUCKET).remove([oldPath]);
-      }
+      // 外した写真は消して容量を節約する
+      const removed = oldPaths.filter((path) => !paths.includes(path));
+      if (removed.length) await supabase.storage.from(BUCKET).remove(removed);
     } else {
       const { error } = await supabase.from('meals').insert(values);
       if (error) throw error;
@@ -879,11 +929,11 @@ async function loadTimeline() {
     return;
   }
 
-  const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path).filter(Boolean));
+  const urls = await signedUrlsFor(meals.flatMap(mealPhotos));
   await loadReactions(meals.map((meal) => meal.id));
 
   timelineEmpty.hidden = true;
-  timeline.replaceChildren(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
+  timeline.replaceChildren(...meals.map((meal) => renderMeal(meal, urls)));
 }
 
 // 非公開バケットなので、表示には期限つきのURLを発行する。
@@ -1022,9 +1072,9 @@ async function loadFavorites(more = false) {
     return;
   }
 
-  const urls = await signedUrlsFor(meals.map((meal) => meal.photo_path).filter(Boolean));
+  const urls = await signedUrlsFor(meals.flatMap(mealPhotos));
   await loadReactions(meals.map((meal) => meal.id));
-  favoriteList.append(...meals.map((meal) => renderMeal(meal, urls.get(meal.photo_path))));
+  favoriteList.append(...meals.map((meal) => renderMeal(meal, urls)));
 
   favoriteCount += meals.length;
   favoriteEmpty.hidden = true;
@@ -1178,19 +1228,65 @@ function showBurst(button, faces) {
 
 // ---------- カードの組み立て ----------
 
-function renderMeal(meal, photoUrl) {
+function makePhoto(meal, url, label = '') {
+  const image = document.createElement('img');
+  image.className = 'photo';
+  image.loading = 'lazy';
+  image.alt = (meal.note || '食事の写真') + label;
+  if (url) image.src = url;
+  return image;
+}
+
+// 2枚以上のときは横に並べて、指でスライドするか左右のやじるしで送る
+function makeSlider(meal, urls) {
+  const box = document.createElement('div');
+  box.className = 'slider';
+  const track = document.createElement('div');
+  track.className = 'slider-track';
+  track.append(...urls.map((url, i) => makePhoto(meal, url, `（${i + 1}/${urls.length}枚目）`)));
+
+  const arrow = (dir, label, char) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `slider-arrow ${dir}`;
+    button.setAttribute('aria-label', label);
+    button.textContent = char;
+    button.addEventListener('click', () => {
+      track.scrollBy({ left: (dir === 'next' ? 1 : -1) * track.clientWidth, behavior: 'smooth' });
+    });
+    return button;
+  };
+  const prev = arrow('prev', '前の写真', '‹');
+  const next = arrow('next', '次の写真', '›');
+
+  const count = document.createElement('span');
+  count.className = 'slider-count';
+
+  // 今どの写真か。はしではやじるしを隠す
+  const update = () => {
+    const index = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+    prev.hidden = index <= 0;
+    next.hidden = index >= urls.length - 1;
+    count.textContent = `${index + 1} / ${urls.length}`;
+  };
+  track.addEventListener('scroll', update, { passive: true });
+  update();
+
+  box.append(track, prev, next, count);
+  return box;
+}
+
+function renderMeal(meal, urls) {
   const card = document.createElement('article');
   card.className = 'card';
   // お知らせから移ってきたとき、このカードを探せるように
   card.dataset.meal = meal.id;
 
-  if (meal.photo_path) {
-    const image = document.createElement('img');
-    image.className = 'photo';
-    image.loading = 'lazy';
-    image.alt = meal.note || '食事の写真';
-    if (photoUrl) image.src = photoUrl;
-    card.append(image);
+  const photos = mealPhotos(meal);
+  if (photos.length === 1) {
+    card.append(makePhoto(meal, urls.get(photos[0])));
+  } else if (photos.length > 1) {
+    card.append(makeSlider(meal, photos.map((path) => urls.get(path))));
   } else {
     card.classList.add('no-photo');
   }
@@ -1325,8 +1421,7 @@ async function deleteMeal(meal) {
     return;
   }
 
-  if (meal.photo_path) {
-    await supabase.storage.from(BUCKET).remove([meal.photo_path]);
-  }
+  const photos = mealPhotos(meal);
+  if (photos.length) await supabase.storage.from(BUCKET).remove(photos);
   await loadTimeline();
 }

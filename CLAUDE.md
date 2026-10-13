@@ -72,6 +72,11 @@ SupabaseのRow Level Securityで実装する：
   - カードではメニュー名のすぐ上に「● 食べ物」「● 飲み物」のように札（.category-tag）を並べる。
     並びは選んだ順ではなく、いつも 食べ物→飲み物→その他。
     丸の色はどれも差し色でそろえる（以前は飲み物・その他を別の色にしていたが、色分けはやめた）
+  - 写真は1回の記録に5枚まで（app.js の MAX_PHOTOS）。選ぶたびに足していき、フォームの小さな写真の × で外せる。
+    2枚以上のカードは横にスライドして見る（.slider。scroll-snap。左右のやじるしと「1 / 3」を出し、はしのやじるしは隠す）。
+    列は photo_paths（text[]、2枚以上のときだけ全部を並べた順に入れる。sql/meal_photos.sql）。
+    1枚目は photo_path にも入れるので、アルバム・ポイントの判定（写真つき）は今まで通り photo_path を見る。
+    読むときは mealPhotos(meal) を使う
   - 撮り忘れた食事も残せるよう、写真なしでも投稿できる。写真なしの記録は
     テキストだけのカードとして表示し、あとから編集で写真を追加できる
   - 日記（任意、100文字まで）。ごはんのメモとは別に、その日の気分やできごとを書く
@@ -289,7 +294,7 @@ SupabaseのRow Level Securityで実装する：
 
 ## データモデル案
 - profiles (id, display_name)
-- meals (id, user_id, photo_path, note, place, eaten_at, meal_type, created_at)
+- meals (id, user_id, photo_path, photo_paths, note, place, eaten_at, meal_type, created_at)
   - photo_path は NULL 可（写真なしの記録）
   - place は外食したお店の名前。NULL 可（40文字まで）
   - diary は日記。NULL 可（100文字まで。制約 meals_diary_length）

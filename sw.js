@@ -1,5 +1,5 @@
 // アプリの見た目部分だけをキャッシュする。データと写真はSupabaseから毎回取得する。
-const CACHE = 'gohan-v71';
+const CACHE = 'gohan-v72';
 const ASSETS = [
   './',
   './index.html',

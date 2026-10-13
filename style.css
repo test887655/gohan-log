@@ -612,9 +612,40 @@ legend {
   color: var(--on-accent);
 }
 
-.preview {
-  width: 100%;
+/* フォームで選んだ写真の小さな一覧。× で1枚ずつ外せる */
+.photo-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photo-picks li { position: relative; }
+
+.photo-picks img {
+  display: block;
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
   border-radius: var(--radius-input);
+  background: var(--border);
+}
+
+.photo-pick-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 26px;
 }
 
 /* ---------- ボタン ---------- */
@@ -1000,6 +1031,57 @@ legend {
   object-fit: cover;
   border-radius: var(--radius-input);
   background: var(--border);
+}
+
+/* 写真が2枚以上の記録。横に並べて1枚ずつぴたっと止まる */
+.slider { position: relative; }
+
+.slider-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--radius-input);
+  -webkit-overflow-scrolling: touch;
+}
+
+.slider-track::-webkit-scrollbar { display: none; }
+
+.slider-track .photo {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  border-radius: 0;
+}
+
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin-top: -18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  color: #333;
+  font-size: 1.6rem;
+  line-height: 34px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.slider-arrow.prev { left: 8px; }
+.slider-arrow.next { right: 8px; }
+.slider-arrow[hidden] { display: none; }
+
+.slider-count {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.75rem;
 }
 
 .meta {
