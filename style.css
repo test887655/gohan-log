@@ -1429,6 +1429,12 @@ button.place-main { cursor: pointer; }
   color: var(--recipe);
 }
 
+.reaction.on[data-kind="erako"] {
+  border-color: var(--star);
+  background: var(--star-tint);
+  color: var(--star);
+}
+
 .reaction.on[data-kind="yummy"] {
   border-color: var(--yummy);
   background: var(--yummy-tint);
@@ -1455,6 +1461,31 @@ button.place-main { cursor: pointer; }
 .reaction-note[data-kind="like"] { color: var(--like); }
 .reaction-note[data-kind="yummy"] { color: var(--yummy); }
 .reaction-note[data-kind="recipe"] { color: var(--recipe); }
+.reaction-note[data-kind="erako"] { color: var(--star); }
+
+/* いいね・おいしそう・えらこを押したときに浮かぶ絵（app.js の showBurst） */
+.burst {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.burst span {
+  position: absolute;
+  left: -0.6em;
+  top: -0.6em;
+  font-size: 1.4rem;
+  opacity: 0;
+  animation: burst-up 1.4s ease-out forwards;
+}
+
+@keyframes burst-up {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  20% { opacity: 1; transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3)) scale(1.15); }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+}
 
 .reaction-icon {
   width: 17px;

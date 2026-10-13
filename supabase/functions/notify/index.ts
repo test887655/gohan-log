@@ -27,6 +27,7 @@ const REACTION_TEXT: Record<string, string> = {
   like: 'がいいねしました',
   yummy: 'が「おいしそう」を押しました',
   recipe: 'がレシピを知りたがっています',
+  erako: 'が「えらこ」を押しました',
 };
 
 // iPhoneへの通知を受け取る人（表示名）。アプリの push.js の PUSH_USERS と同じにしておく

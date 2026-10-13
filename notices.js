@@ -11,8 +11,9 @@ const REACTION_TEXT = {
   like: 'がいいねしました',
   yummy: 'が「おいしそう」を押しました',
   recipe: 'がレシピを知りたがっています',
+  erako: 'が「えらこ」を押しました',
 };
-const REACTION_FACE = { like: '❤️', yummy: '😋', recipe: '📖' };
+const REACTION_FACE = { like: '❤️', yummy: '😋', recipe: '📖', erako: '👏' };
 
 const $ = (id) => document.getElementById(id);
 

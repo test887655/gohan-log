@@ -37,6 +37,7 @@ const REACTIONS = [
     path: 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3'
       + 'c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5'
       + 'c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
+    burst: ['❤️', '💕', '❤️'],
   },
   {
     kind: 'yummy',
@@ -46,6 +47,17 @@ const REACTIONS = [
     path: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0'
       + ' M9 10h.01 M15 10h.01'
       + ' M8.4 14.4c.9 1.2 2.1 1.9 3.6 1.9s2.7-.7 3.6-1.9',
+    burst: ['✨', '✨', '⭐'],
+  },
+  {
+    kind: 'erako',
+    label: 'えらこ',
+    told: 'が「えらこ」',
+    // 花まる。丸のまわりに花びらを描く
+    path: 'M12 8.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7'
+      + ' M12 2.5v3 M12 18.5v3 M2.5 12h3 M18.5 12h3'
+      + ' M5.3 5.3l2.1 2.1 M16.6 16.6l2.1 2.1 M5.3 18.7l2.1-2.1 M16.6 7.4l2.1-2.1',
+    burst: ['👏', '👏', '👏'],
   },
   {
     kind: 'recipe',
@@ -1095,7 +1107,7 @@ function renderReactions(meal) {
     button.dataset.kind = type.kind;
     button.append(makeIcon(type), document.createTextNode(type.label));
     setReactionState(button, on);
-    button.addEventListener('click', () => toggleReaction(meal, type.kind, button));
+    button.addEventListener('click', () => toggleReaction(meal, type, button));
     box.append(button);
   }
 
@@ -1107,7 +1119,8 @@ function setReactionState(button, on) {
   button.setAttribute('aria-pressed', String(on));
 }
 
-async function toggleReaction(meal, kind, button) {
+async function toggleReaction(meal, type, button) {
+  const { kind } = type;
   const on = button.classList.contains('on');
   button.disabled = true;
 
@@ -1130,6 +1143,8 @@ async function toggleReaction(meal, kind, button) {
       if (error && error.code !== '23505') throw error;
     }
     setReactionState(button, !on);
+    // 押したとき（取り消しではないとき）だけ、ボタンから絵がふわっと出る
+    if (!on && type.burst) showBurst(button, type.burst);
   } catch (error) {
     console.error(error);
     alert(`うまくいきませんでした：${error.message ?? error}`);
@@ -1137,6 +1152,28 @@ async function toggleReaction(meal, kind, button) {
   } finally {
     button.disabled = false;
   }
+}
+
+// ボタンのまわりから絵文字を浮かび上がらせ、2秒ほどで消す。
+// 「視差効果を減らす」の端末では出さない
+function showBurst(button, faces) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const rect = button.getBoundingClientRect();
+  const layer = document.createElement('div');
+  layer.className = 'burst';
+  layer.setAttribute('aria-hidden', 'true');
+  layer.style.left = `${rect.left + rect.width / 2}px`;
+  layer.style.top = `${rect.top}px`;
+  for (let i = 0; i < 6; i += 1) {
+    const piece = document.createElement('span');
+    piece.textContent = faces[i % faces.length];
+    piece.style.setProperty('--dx', `${Math.round((Math.random() - 0.5) * 110)}px`);
+    piece.style.setProperty('--dy', `${-50 - Math.round(Math.random() * 50)}px`);
+    piece.style.animationDelay = `${i * 0.12}s`;
+    layer.append(piece);
+  }
+  document.body.append(layer);
+  setTimeout(() => layer.remove(), 2200);
 }
 
 // ---------- カードの組み立て ----------
